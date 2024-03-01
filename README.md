@@ -12,8 +12,12 @@
 ## Installation
 
 ```
-$ npm install ibom-chat-popup
+$ npm install ibom-chat-popup or $ yarn add ibom-chat-popup
 ```
+
+## Running as demo
+
+Using git to clone the project, and then run <b>yarn install && npm start</b> to install node modules and run the project (remember to provide correct token)
 
 ## Example
 
