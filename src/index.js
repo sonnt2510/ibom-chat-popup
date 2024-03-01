@@ -262,5 +262,5 @@ PopupChat.defaultProps = {
   isOpen: true
 };
 
-ReactDOM.render(<PopupChat />, document.getElementById('popupChat'));
+ReactDOM.render(<PopupChat />, document.getElementById('app'));
 
