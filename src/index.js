@@ -9,6 +9,7 @@ import { requestGetListMessage, setPayloadDefault, setMessageId, getMessageId, r
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
 import incomingMessageSound from './assets/sounds/notification.mp3';
+import * as ReactDOM from 'react-dom';
 
 class PopupChat extends Component {
   constructor() {
@@ -261,5 +262,5 @@ PopupChat.defaultProps = {
   isOpen: true
 };
 
-export default PopupChat;
+ReactDOM.render(<PopupChat />, document.getElementById('popupChat'));
 

@@ -1,5 +1,5 @@
 {
-  "name": "IBom popup chat",
+  "name": "IBom-popup-chat",
   "version": "1.2.0",
   "description": "IBom popup chat React component",
   "main": "lib/index.js",
@@ -26,7 +26,7 @@
     "build": "nwb build-react-component --copy-files",
     "clean": "nwb clean-module && nwb clean-demo",
     "lint": "eslint src demo/src",
-    "start": "nwb serve-react-demo"
+    "start": "nwb serve-react-app"
   },
   "dependencies": {
     "@microsoft/signalr": "^8.0.0",
@@ -44,7 +44,7 @@
     "babel-eslint": "^10.0.1",
     "eslint": "^5.13.0",
     "eslint-plugin-react": "^7.12.4",
-    "nwb": "^0.23.0",
+    "nwb": "^0.25.0",
     "react": "16.0.0",
     "react-dom": "16.0.0"
   },
