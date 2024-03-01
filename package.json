@@ -1,6 +1,6 @@
 {
   "name": "ibom-popup-chat",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "IBom popup chat React component",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -48,12 +48,13 @@
     "react": "16.0.0",
     "react-dom": "16.0.0"
   },
-  "author": "kingofthestack",
-  "homepage": "https://kingofthestack.github.io/react-chat-window/",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kingofthestack/react-chat-window.git"
+    "url": "https://github.com/sonnt2510/ibom-chat-popup"
   },
   "keywords": [
     "react-component"
