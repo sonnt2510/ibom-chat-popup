@@ -1,0 +1,33 @@
+.Loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+
+  &--isFullScreen {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  &::before {
+    content: '';
+    display: 'block';
+    min-width: 40px;
+    min-height: 40px;
+    border: 5px solid rgba(0, 0, 0, 0.25);
+    border-right: 5px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spinner 1s linear infinite;
+  }
+}
+
+@keyframes spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
