@@ -6,7 +6,7 @@
 <a href="https://www.npmjs.com/package/react-chat-window" target="\_parent">
 </a>
 
-![Demo and image of chat popup](https://imgur.com/a/hYtCLjM)
+![Demo and image of chat popup](https://i.imgur.com/5Yyc03f.png)
 
 
 ## Installation
