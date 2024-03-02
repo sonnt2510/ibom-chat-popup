@@ -48,9 +48,7 @@
     "react": "16.0.0",
     "react-dom": "16.0.0"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
+
   "license": "MIT",
   "repository": {
     "type": "git",
