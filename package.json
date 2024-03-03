@@ -26,7 +26,7 @@
     "build": "nwb build-react-component --copy-files",
     "clean": "nwb clean-module && nwb clean-demo",
     "lint": "eslint src demo/src",
-    "start": "nwb serve-react-app"
+    "start": "nwb serve-react-demo"
   },
   "dependencies": {
     "@microsoft/signalr": "^8.0.0",

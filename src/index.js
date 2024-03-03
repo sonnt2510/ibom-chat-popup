@@ -251,16 +251,5 @@ PopupChat.propTypes = {
   isOpen: PropTypes.bool.isRequired
 };
 
-PopupChat.defaultProps = {
-  apiHost: 'http://qa.ibom.com.vn:8113/',
-  token: '2db88db5f1fad4121c0e92a012534274af524a92040530ccb62c3277f99f5a2f00ded37444df17f7e16c7bf88180db0eb8acebad6a0d46a72f2a41f5f117f519',
-  objInstanceId: '360314',
-  objId: '13',
-  username: 'demo6@pro.qa',
-  userId: 39253,
-  chathubURI: 'https://chathub.ibom.vn/',
-  isOpen: true
-};
-
-ReactDOM.render(<PopupChat />, document.getElementById('app'));
+export default PopupChat;
 

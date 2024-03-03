@@ -6,7 +6,7 @@
 <a href="https://www.npmjs.com/package/react-chat-window" target="\_parent">
 </a>
 
-![Demo and image of chat popup](https://i.imgur.com/5Yyc03f.png)
+![Demo and image of chat popup](https://i.imgur.com/Q6jE9Vm.png)
 
 
 ## Installation
@@ -17,7 +17,9 @@ $ npm install ibom-chat-popup or $ yarn add ibom-chat-popup
 
 ## Running as demo
 
-Using git to clone the project, and then run <b>yarn install && npm start</b> to install node modules and run the project (remember to provide correct token)
+Using git to clone the project, and then run <b>yarn install && npm start</b> to install node modules and run the project.
+
+After that go to demo/src/index to update correctly props like token, apiHost, etc.
 
 ## Example
 
@@ -45,7 +47,5 @@ class Demo extends Component {
   }
 }
 ```
-
-For more detailed examples see the demo folder.
 
 
