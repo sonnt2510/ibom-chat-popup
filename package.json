@@ -1,6 +1,6 @@
 {
   "name": "ibom-popup-chat",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "IBom popup chat React component",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -29,6 +29,9 @@
     "start": "nwb serve-react-demo"
   },
   "dependencies": {
+    "@babel/core": "^7.24.4",
+    "@babel/preset-env": "^7.24.4",
+    "@babel/preset-react": "^7.24.1",
     "@microsoft/signalr": "^8.0.0",
     "axios": "^1.6.5",
     "emoji-js": "3.2.2",
@@ -48,7 +51,6 @@
     "react": "16.0.0",
     "react-dom": "16.0.0"
   },
-
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -25,9 +25,9 @@ export const requestGetListMessage = async (lastId) => {
   let formdata = new FormData();
   formdata.append('object_instance_id', objInstanceId);
   formdata.append('object_id', objId);
-  formdata.append('app_type', 1);
+  formdata.append('app_type', 2);
   formdata.append('is_older', 1);
-  formdata.append('last_id', lastId);
+  formdata.append('last_id', lastId ?? '');
   const response = await doPostRequest('common/comment.do', formdata);
   const messageList = [];
   if (response.data.result === 'success') {
@@ -94,7 +94,7 @@ export const requestSendMessage = async (comment, files) => {
   formdata.append('mode', 'submit');
   formdata.append('comment_content', comment);
   formdata.append('FileUpload', files);
-  formdata.append('app_type', 1);
+  formdata.append('app_type', 2);
   const response = await doPostRequest('common/comment.do', formdata);
   if (messageId) {
     payloadEvent.content = comment;
@@ -118,7 +118,7 @@ export const requestDeleteMessage = (id) => {
   formdata.append('object_id', objId);
   formdata.append('mode', 'delete');
   formdata.append('comment_id', id);
-  formdata.append('app_type', 1);
+  formdata.append('app_type', 2);
   doPostRequest('common/comment.do', formdata);
 };
 

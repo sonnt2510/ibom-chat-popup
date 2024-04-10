@@ -16,7 +16,7 @@ class PopupChat extends Component {
     super();
     this.state = {
       messageList: [],
-      isOpen: false,
+      isOpen: true,
       loading: true,
       roomName: '',
       isLoadMore: false
@@ -45,6 +45,7 @@ class PopupChat extends Component {
   }
 
   setupData() {
+    console.log('props', this.props);
     const { apiHost, token, username, objInstanceId, userId, objId, chathubURI } = this.props;
     setApiInstance(apiHost, token, username);
     setPayloadDefault(objInstanceId, objId, userId, username);
