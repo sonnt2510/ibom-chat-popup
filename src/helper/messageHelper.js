@@ -20,11 +20,11 @@ export class MessageHelper {
       if (fileList.length) {
         for (const i in fileList) {
           const fileMessage = objMessage;
-          const { extension, fileUrl, fileName } = fileList[i];
+          const { extension, file_path, file_name } = fileList[i];
           const type = imageExtensions.includes(extension.replace('.', '')) ? 'image' : 'file';
           objMessage.type = 'file';
-          objMessage.data.url = fileUrl;
-          objMessage.data.fileName = fileName;
+          objMessage.data.url = file_path;
+          objMessage.data.fileName = file_name;
           objMessage.data.type = type;
           listMessage.push(fileMessage);
         }

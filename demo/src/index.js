@@ -23,7 +23,7 @@ class Demo extends Component {
 
 Demo.defaultProps = {
   apihost: 'http://qa.ibom.com.vn:8113/',
-  token: 'bafa181335f3d8de4b53c80f5d655626c3081fc7ce6d6ec729c6c2b22f9a1da616765b9df86f9b98616a82a66dc08916d069ad62c07c8e73b24c2d2bd58d7f41',
+  token: 'ed0e221b3c2a78f13d669f98bd4f7a11f34999b5c85853b0edff5c917b394763289aa7541b3ffb4b8cf9c4240c4bb704626ceea8d38576fbb67fa0eb00b7082b',
   objinstanceid: '360314',
   objid: '13',
   username: 'demo6@pro.qa',
