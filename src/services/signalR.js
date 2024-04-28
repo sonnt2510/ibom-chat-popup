@@ -13,6 +13,7 @@ const deleteMessageEvent = new CustomEvent('delete-message');
 export class ChatHubHelper {
   static _isValidMessage = (data) => {
     const event = data.event;
+
     if (!event) {
       return false;
     }
@@ -21,7 +22,7 @@ export class ChatHubHelper {
     case 'new-messages':
     {
       const message = data.payload;
-      const isValidMessagePayload = message && message.id && message.objectId && message.objectInstanceId;
+      const isValidMessagePayload = message && message.comment_id && message.object_id && message.object_instance_id;
       return isValidMessagePayload && !isSentByThisDevice;
     }
     case 'user-typing':
@@ -47,7 +48,6 @@ export class ChatHubHelper {
   static _onReceivedMessage = (user, dataString) => {
     const data = JSON.parse(dataString);
     if (ChatHubHelper._isValidMessage(data)) {
-  
       const event = data.event;
       switch (event) {
       case 'new-messages':

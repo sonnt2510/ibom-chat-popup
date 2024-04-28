@@ -5,18 +5,19 @@ import waitingIcon from '../../assets/waiting.png';
 import copyIcon from '../../assets/copy-icon.png';
 import editIcon from '../../assets/edit-icon.webp';
 import trashIcon from '../../assets/trash-icon.png';
+import verticalDot from '../../assets/vertical_dot.webp';
 import Popup from 'reactjs-popup';
 import moment from 'moment';
 
 class Message extends Component {
   _renderMessageOfType(type) {
     switch (type) {
-      case 'text':
-        return <TextMessage {...this.props.message} />;
-      case 'file':
-        return <FileMessage {...this.props.message} />;
-      default:
-        console.error(`Attempting to load message with unsupported file type '${type}'`);
+    case 'text':
+      return <TextMessage {...this.props.message} />;
+    case 'file':
+      return <FileMessage {...this.props.message} />;
+    default:
+      console.error(`Attempting to load message with unsupported file type '${type}'`);
     }
   }
 
@@ -29,13 +30,18 @@ class Message extends Component {
 
   renderOption = () => {
     const { type, id } = this.props.message;
+
     return (
       id ?
         <div style={{ cursor: 'pointer' }} className='sc-message--waiting-icon-wrap'>
           <Popup
+            className='sc-popup-window'
             ref={(e) => {
               this.popup = e;
             }}
+            trigger={
+              <img className='sc-message--menu-icon' alt='loading-message' src={verticalDot} />
+            } position="left top"
           >
             <div style={{ paddingLeft: 5, paddingRight: 5 }}>
               {type === 'text' ?

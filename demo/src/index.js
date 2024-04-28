@@ -14,21 +14,23 @@ class Demo extends Component {
         username={this.props.username}
         userId={this.props.userid}
         chathubURI={this.props.chathuburi}
+        appType={this.props.apptype}
         isOpen={true}
       />
     </div>;
   }
 }
 
-// Demo.defaultProps = {
-//   apihost: 'http://qa.ibom.com.vn:8113/',
-//   token: '8e98caf7d4beb38376cda411d3717ad66a3fc94f7b66d38a552e6377f2395a1602a56894b90f78c7fc463adb2b1b120c7d95271fb7630fa549d775ce643b4432',
-//   objinstanceid: '360314',
-//   objid: '13',
-//   username: 'demo6@pro.qa',
-//   userid: 39253,
-//   chathuburi: 'https://chathub.ibom.vn/',
-//   isopen: true
-// };
+Demo.defaultProps = {
+  apihost: 'http://qa.ibom.com.vn:8113/',
+  token: 'bafa181335f3d8de4b53c80f5d655626c3081fc7ce6d6ec729c6c2b22f9a1da616765b9df86f9b98616a82a66dc08916d069ad62c07c8e73b24c2d2bd58d7f41',
+  objinstanceid: '360314',
+  objid: '13',
+  username: 'demo6@pro.qa',
+  userid: 39253,
+  chathuburi: 'https://chathub.ibom.vn/',
+  apptype: 2,
+  isopen: true
+};
 
 render(<Demo {...(document.querySelector('#demo').dataset)}/>, document.querySelector('#demo'));

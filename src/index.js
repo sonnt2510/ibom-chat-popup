@@ -9,7 +9,6 @@ import { requestGetListMessage, setPayloadDefault, setMessageId, getMessageId, r
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
 import incomingMessageSound from './assets/sounds/notification.mp3';
-import * as ReactDOM from 'react-dom';
 
 class PopupChat extends Component {
   constructor() {
@@ -45,10 +44,9 @@ class PopupChat extends Component {
   }
 
   setupData() {
-    console.log('props', this.props);
-    const { apiHost, token, username, objInstanceId, userId, objId, chathubURI } = this.props;
+    const { apiHost, token, username, objInstanceId, userId, objId, chathubURI, appType } = this.props;
     setApiInstance(apiHost, token, username);
-    setPayloadDefault(objInstanceId, objId, userId, username);
+    setPayloadDefault(objInstanceId, objId, userId, username, appType);
     ChatHubHelper.storeChatHubURI(chathubURI);
     this._getListMessage();
     document.addEventListener('new-messages', (e) => this.handleNewMessageListener(e), false);
@@ -65,7 +63,14 @@ class PopupChat extends Component {
   handleNewMessageListener(e) {
     setTypeOfAction('add');
     var audio = new Audio(incomingMessageSound);
-    audio.play();
+    var resp = audio.play();
+    if (resp!== undefined) {
+      resp.then(_ => {
+        audio.play()
+      }).catch(error => {
+        console.log('error', error);
+      });
+    }
     this.setState({
       messageList: [...this.state.messageList, ...e.newMessage]
     });

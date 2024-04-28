@@ -6,17 +6,19 @@ import { ChatHelper } from '../helper/chatHelper';
 let objInstanceId = null;
 let objId = null;
 let userId = null;
+let appType = null;
 let userName = '';
 let userList = [];
 let messageId = '';
 let typeOfAction = 'get';
 let sessionId = '';
 
-export const setPayloadDefault = (instanceId, oId, user, username) => {
+export const setPayloadDefault = (instanceId, oId, user, username, apptype) => {
   objInstanceId = instanceId;
   objId = oId;
   userId = user;
   userName = username;
+  appType = apptype;
 };
 
 export const requestGetListMessage = async (lastId) => {
@@ -25,7 +27,7 @@ export const requestGetListMessage = async (lastId) => {
   let formdata = new FormData();
   formdata.append('object_instance_id', objInstanceId);
   formdata.append('object_id', objId);
-  formdata.append('app_type', 2);
+  formdata.append('app_type', appType);
   formdata.append('is_older', 1);
   formdata.append('last_id', lastId ?? '');
   const response = await doPostRequest('common/comment.do', formdata);

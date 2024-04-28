@@ -4,15 +4,15 @@ export class MessageHelper {
 
     static convertMessageResponseToChatMessage = (payload) => {
       const listMessage = [];
-      const { id, senderName, avatar, content, sentDateDisplay, fileList } = payload;
+      const { id, user_created_name, avatar, comment_content, created_date_view, fileList } = payload;
       let objMessage = {
         id,
         author: 'them',
         type: 'text',
         data: {
-          name: senderName,
-          text: content,
-          date: sentDateDisplay,
+          name: user_created_name,
+          text: comment_content,
+          date: created_date_view,
           avatar
         }
       };
