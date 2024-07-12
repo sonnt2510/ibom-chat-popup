@@ -10,7 +10,7 @@ class ChatWindow extends Component {
   }
 
   onUserInputSubmit(message) {
-    this.props.onUserInputSubmit(message);
+    this.props.onMessageWasSent(message);
   }
 
   onFilesSelected(filesList) {
@@ -39,6 +39,8 @@ class ChatWindow extends Component {
         // imageUrl={this.props.agentProfile.imageUrl}
         />
         <UserInput
+          isAllowAddNew={this.props.isAllowAddNew}
+          isAllowAttach={this.props.isAllowAttach}
           loading={this.props.loading}
           onSubmit={this.onUserInputSubmit.bind(this)}
           onFilesSelected={this.onFilesSelected.bind(this)}

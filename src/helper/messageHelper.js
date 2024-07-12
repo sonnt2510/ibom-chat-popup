@@ -4,9 +4,9 @@ export class MessageHelper {
 
     static convertMessageResponseToChatMessage = (payload) => {
       const listMessage = [];
-      const { id, user_created_name, avatar, comment_content, created_date_view, fileList } = payload;
+      const { id, user_created_name, avatar, comment_content, created_date_view, fileList, comment_id } = payload;
       let objMessage = {
-        id,
+        id: comment_id,
         author: 'them',
         type: 'text',
         data: {

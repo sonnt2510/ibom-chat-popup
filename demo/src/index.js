@@ -23,11 +23,11 @@ class Demo extends Component {
 
 Demo.defaultProps = {
   apihost: 'http://qa.ibom.com.vn:8113/',
-  token: 'ed0e221b3c2a78f13d669f98bd4f7a11f34999b5c85853b0edff5c917b394763289aa7541b3ffb4b8cf9c4240c4bb704626ceea8d38576fbb67fa0eb00b7082b',
-  objinstanceid: '360314',
+  token: '76a18f0301a5361d9ed865d9b6e7215765929b23077e469455e59b510a6f16c50e559565299cab49996019263b228285785e5c3bb81b5e4917c44674b5fd1a5d',
+  objinstanceid: '399316',
   objid: '13',
-  username: 'demo6@pro.qa',
-  userid: 39253,
+  username: 'quantri11@pro.qa',
+  userid: 39093,
   chathuburi: 'https://chathub.ibom.vn/',
   apptype: 2,
   isopen: true

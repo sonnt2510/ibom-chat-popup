@@ -25,7 +25,8 @@ const FileMessage = (props) => {
       {props.author === 'them' && showName ? <p className="sc-message--fileAuthorName">{name}</p> : null}
       {renderFile()}
       <p style={{
-        marginRight: 15,
+        marginTop: 10,
+        textAlign: props.author === 'them' ? 'left' : 'right',
         color: props.author === 'them' ? '#263238' : 'white',
       }} className="sc-message--time">{splitDate[splitDate.length - 1]}</p>
     </a>

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Launcher from './components/Launcher';
 import './styles';
 import './styles/base.css';
 import PropTypes from 'prop-types';
@@ -9,38 +8,21 @@ import { requestGetListMessage, setPayloadDefault, setMessageId, getMessageId, r
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
 import incomingMessageSound from './assets/sounds/notification.mp3';
+import copyIcon from './assets/bubble-icon.png';
+import ChatWindow from './components/ChatWindow';
 
 class PopupChat extends Component {
   constructor() {
     super();
     this.state = {
       messageList: [],
-      isOpen: true,
+      isOpen: false,
       loading: true,
       roomName: '',
-      isLoadMore: false
+      isLoadMore: false,
+      isAllowAddNew: false,
+      isAllowAttach: false
     };
-  }
-
-  componentWillUnmount() {
-    this.stopConnect();
-  }
-
-  stopConnect(){
-    ChatHubHelper.stopConnection();
-    document.removeEventListener('new-messages');
-    document.removeEventListener('edit-message');
-    document.removeEventListener('delete-message');
-  }
-
-  async componentDidUpdate(prevProps) {
-    if (prevProps.objInstanceId !== this.props.objInstanceId) {
-      this.setupData();
-    }
-
-    if (prevProps.isOpen !== this.state.isOpen) {
-      this.setState({ isOpen: prevProps.isOpen });
-    }
   }
 
   setupData() {
@@ -55,10 +37,8 @@ class PopupChat extends Component {
   }
 
   componentDidMount() {
-    this.setState({isOpen: this.props.isOpen});
     this.setupData();
   }
-
 
   handleNewMessageListener(e) {
     setTypeOfAction('add');
@@ -96,7 +76,9 @@ class PopupChat extends Component {
     this.setState({
       teamName: response ? response.title : '',
       messageList: response ? response.list : [],
-      loading: false
+      loading: false,
+      isAllowAddNew: response ? response.isAllowAddNew : false,
+      isAllowAttach: response ? response.isAllowAttach : false
     });
   }
 
@@ -131,6 +113,8 @@ class PopupChat extends Component {
       const listAssign = Object.assign([], this.state.messageList);
       const findIndex = listAssign.findIndex(e => e.index === index);
       listAssign[findIndex].id = id;
+      listAssign[findIndex].isAllowEdit = response.isAllowEdit;
+      listAssign[findIndex].isAllowDelete = response.isAllowEdit;
       this.setState({ messageList: listAssign });
       setMessageId('');
     }
@@ -200,7 +184,7 @@ class PopupChat extends Component {
   }
 
   render() {
-    const { teamName, isOpen, messageList, loading, isLoadMore } = this.state;
+    const { teamName, isOpen, messageList, loading, isLoadMore, isAllowAddNew, isAllowAttach } = this.state;
     const listMessagesParse = JSON.parse(JSON.stringify(messageList));
 
     for (const i in listMessagesParse) {
@@ -222,9 +206,13 @@ class PopupChat extends Component {
         }
       }
     }
-
     return <div>
-      <Launcher
+      {!isOpen ?   
+      <div onClick={() => this.setState({ isOpen: true})} className='sc-launcher'>
+        <img alt='bubble' src={copyIcon} />
+        <span>Trao đổi</span>
+      </div> : null}
+      <ChatWindow
         isLoadMore={isLoadMore}
         onLoadMore={this.onLoadMore}
         optionClick={this.optionClick}
@@ -238,8 +226,9 @@ class PopupChat extends Component {
         isOpen={isOpen}
         onClose={() => {
           this.setState({ isOpen: false });
-          this.stopConnect();
         }}
+        isAllowAddNew={isAllowAddNew}
+        isAllowAttach={isAllowAttach}
       />
     </div>;
   }
@@ -254,7 +243,6 @@ PopupChat.propTypes = {
   username: PropTypes.object.isRequired,
   userId: PropTypes.number.isRequired,
   chathubURI: PropTypes.string.isRequired,
-  isOpen: PropTypes.bool.isRequired
 };
 
 export default PopupChat;

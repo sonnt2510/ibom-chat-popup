@@ -109,7 +109,7 @@
 
 .sc-message--content.sent .sc-message--text {
   color: white;
-  background-color: #39518b;
+  background-color: #4f72c2;
   max-width: calc(100% - 120px);
   word-wrap: break-word;
   max-width: 270px;
@@ -138,8 +138,7 @@
 
 .sc-message--file {
   padding-bottom: 5px;
-  background-color: white;
-  border: solid 1px #cccdd1;
+  background-color: #4f72c2 !important;
   border-radius: 5px;
   font-weight: 300;
   font-size: 14px;
@@ -149,12 +148,9 @@
   word-wrap: break-word;
   max-width: 300px;
   width: auto;
+  padding: 15px 15px
 }
 
-.sc-message--file p {
-  margin: 0px 0px 0px 10px;
-  /* color: rgba(86, 88, 103, 0.6); */
-}
 
 .sc-message--file .sc-user-input--file-icon:hover path {
   fill: rgba(86, 88, 103, 0.3);

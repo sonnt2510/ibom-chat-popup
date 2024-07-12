@@ -38,12 +38,14 @@ export const requestGetListMessage = async (lastId) => {
       return JSON.stringify(e.user_id);
     });
     for (const i in listMessageResponse) {
-      const { created_by, comment_content, created_date_view, avatar, fileList, user_created_name, comment_id } = listMessageResponse[i];
+      const { comment_content, created_date_view, avatar, fileList, user_created_name, comment_id, text_align, allow_del, allow_edit } = listMessageResponse[i];
       let objMessage = {
         index,
         id: comment_id,
-        author: created_by === userId ? 'me' : 'them',
+        author: text_align === 2 ? 'me' : 'them',
         type: 'text',
+        isAllowDelete: allow_del === 0,
+        isAllowEdit: allow_edit === 0,
         data: {
           name: user_created_name,
           text: comment_content,
@@ -59,8 +61,9 @@ export const requestGetListMessage = async (lastId) => {
           const fileMessage = {
             index,
             id: comment_id,
-            author: created_by === userId ? 'me' : 'them',
+            author: text_align === 2 ? 'me' : 'them',
             type: 'file',
+            isAllowDelete: allow_del === 1,
             data: {
               name: user_created_name,
               type,
@@ -84,6 +87,8 @@ export const requestGetListMessage = async (lastId) => {
   return {
     list: messageList,
     title: response.data.OBJECT_INSTANCE_NAME,
+    isAllowAddNew: response.data.allow_add_new === 1,
+    isAllowAttach: response.data.allow_attach === 1
   };
 };
 
@@ -98,6 +103,7 @@ export const requestSendMessage = async (comment, files) => {
   formdata.append('FileUpload', files);
   formdata.append('app_type', 2);
   const response = await doPostRequest('common/comment.do', formdata);
+  console.log('res',response)
   if (messageId) {
     payloadEvent.content = comment;
     payloadEvent.messageId = messageId;
@@ -107,7 +113,9 @@ export const requestSendMessage = async (comment, files) => {
   }
   return {
     isSuccess: response.data.result === 'success',
-    commentId: response.data.comment_id
+    commentId: response.data.comment_id,
+    isAllowDelete: response.data.allow_del == 1,
+    isAllowEdit: response.data.allow_edit == 1
   };
 };
 
@@ -155,4 +163,13 @@ export const getUserIds = () => {
 export const getSessionId = () => {
   return sessionId;
 };
+
+export const getObjId = () => {
+  return objId;
+};
+
+export const getObjInstanceId = () => {
+  return objInstanceId;
+};
+
 

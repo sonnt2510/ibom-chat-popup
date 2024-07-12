@@ -80,15 +80,16 @@ class UserInput extends Component {
       );
     }
     return (
-      <div className="sc-user-input--button">
-        <FileIcon onClick={this._showFilePicker.bind(this)} />
-        <input
-          type="file"
-          // name="files[]"
-          ref={(e) => { this._fileUploadButton = e; }}
-          onChange={this._onFilesSelected.bind(this)}
-        />
-      </div>
+      this.props.isAllowAttach ? 
+        <div className="sc-user-input--button">
+          <FileIcon onClick={this._showFilePicker.bind(this)} />
+          <input
+            type="file"
+            // name="files[]"
+            ref={(e) => { this._fileUploadButton = e; }}
+            onChange={this._onFilesSelected.bind(this)}
+          />
+        </div> : null
     );
   }
 
@@ -102,6 +103,7 @@ class UserInput extends Component {
   }
 
   render() {
+    if (!this.props.isAllowAddNew) return null
     const { inputActive, inputHasClose } = this.state;
     return (
       <form className={`sc-user-input ${(inputActive ? 'active' : '')}`}>

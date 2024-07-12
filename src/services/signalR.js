@@ -1,6 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { MessageHelper } from '../helper/messageHelper';
-import { getSessionId } from './request';
+import { getObjId, getObjInstanceId, getSessionId } from './request';
 
 let _chathubURI = '';
 let connection = null;
@@ -13,22 +13,27 @@ const deleteMessageEvent = new CustomEvent('delete-message');
 export class ChatHubHelper {
   static _isValidMessage = (data) => {
     const event = data.event;
-
     if (!event) {
       return false;
     }
-    const isSentByThisDevice = data.sentDeviceUID === getSessionId();
+    const sessionId = getSessionId()
+    const objId = getObjId()
+    const objInstanceId = getObjInstanceId()
+    
+    const isSentByThisDevice = data.sentDeviceUID === sessionId;
     switch (event) {
     case 'new-messages':
     {
       const message = data.payload;
-      const isValidMessagePayload = message && message.comment_id && message.object_id && message.object_instance_id;
+      const isValidMessagePayload = message && message.comment_id && message.object_id && message.object_instance_id && message.object_id == objId && message.object_instance_id == objInstanceId;
       return isValidMessagePayload && !isSentByThisDevice;
     }
     case 'user-typing':
     {
+    
       const typingData = data.payload;
-      return typingData && typingData.userName && typingData.typingState && !isSentByThisDevice;
+      console.log('asdasdas', typingData && typingData.userName && typingData.typingState && !isSentByThisDevice && typingData.objectId == objId && typingData.objectInstanceId == objInstanceId)
+      return typingData && typingData.userName && typingData.typingState && !isSentByThisDevice && typingData.objectId == objId && typingData.objectInstanceId == objInstanceId ;
     }
 
     case 'edit-message':

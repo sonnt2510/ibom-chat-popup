@@ -29,7 +29,7 @@ class Message extends Component {
   }
 
   renderOption = () => {
-    const { type, id } = this.props.message;
+    const { type, id, isAllowDelete, isAllowEdit } = this.props.message;
 
     return (
       id ?
@@ -46,20 +46,21 @@ class Message extends Component {
             <div style={{ paddingLeft: 5, paddingRight: 5 }}>
               {type === 'text' ?
                 <div>
-                  <div onClick={() => this.onOptionClick('copy')} className='sc-message-option-wrap'>
+                  <div style={{borderBottomWidth: !isAllowEdit && !isAllowDelete ? 0 : 1}} onClick={() => this.onOptionClick('copy')} className='sc-message-option-wrap'>
                     <img src={copyIcon} className='sc-message-option-icon' alt='copy' />
                     <span>Copy tin nhắn</span>
                   </div>
-                  <div onClick={() => this.onOptionClick('edit')} className='sc-message-option-wrap'>
+                  {isAllowEdit ? <div style={{borderBottomWidth: !isAllowDelete ? 0 : 1}} onClick={() => this.onOptionClick('edit')} className='sc-message-option-wrap'>
                     <img src={editIcon} className='sc-message-option-icon' alt='edit' />
                     <span>Chỉnh sửa tin nhắn</span>
-                  </div>
+                  </div> : null}
                 </div>
                 : null}
+              {isAllowDelete ?  
               <div onClick={() => this.onOptionClick('delete')} style={{ border: 'none' }} className='sc-message-option-wrap'>
                 <img src={trashIcon} className='sc-message-option-icon sc-message-option-icon-trash' alt='trash' />
                 <span style={{ color: '#FF474C' }}>Xoá</span>
-              </div>
+              </div> : null}
             </div>
           </Popup>
         </div>
@@ -77,7 +78,7 @@ class Message extends Component {
       'sc-message--content',
       (author === 'me' ? 'sent' : 'received')
     ];
-
+    console.log('adsa', this.props.message)
     return (
       <div>
         {showDate ? <p className='sc-message--date'>{moment(date, 'DD/MM/YYYY').format('MMM DD, yyyy')}</p> : null}
