@@ -9,7 +9,7 @@
       "name": "Chrome",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3000",
+      "url": "http://localhost:4000",
       "webRoot": "${workspaceRoot}/src",
       "runtimeArgs": [
         "--disable-web-security"
@@ -23,10 +23,10 @@
     "umd"
   ],
   "scripts": {
-    "build": "nwb build-react-component --copy-files",
+    "build": "export NODE_OPTIONS=--openssl-legacy-provider && nwb build-react-component --copy-files",
     "clean": "nwb clean-module && nwb clean-demo",
     "lint": "eslint src demo/src",
-    "start": "nwb serve-react-demo"
+    "start": "export NODE_OPTIONS=--openssl-legacy-provider && nwb serve-react-demo"
   },
   "dependencies": {
     "@babel/core": "^7.24.4",

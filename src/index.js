@@ -16,7 +16,7 @@ class PopupChat extends Component {
     super();
     this.state = {
       messageList: [],
-      isOpen: false,
+      isOpen: true,
       loading: true,
       roomName: '',
       isLoadMore: false,
@@ -26,21 +26,28 @@ class PopupChat extends Component {
   }
 
   setupData() {
-    const { apiHost, token, username, objInstanceId, userId, objId, chathubURI, appType } = this.props;
-    setApiInstance(apiHost, token, username);
-    setPayloadDefault(objInstanceId, objId, userId, username, appType);
-    ChatHubHelper.storeChatHubURI(chathubURI);
-    this._getListMessage();
-    document.addEventListener('new-messages', (e) => this.handleNewMessageListener(e), false);
-    document.addEventListener('edit-message', (e) => this.handleEditDeleteMessageListener(e, 'edit'), false);
-    document.addEventListener('delete-message', (e) => this.handleEditDeleteMessageListener(e, 'delete'), false);
+    const { apiHost, token, username, objInstanceId, userId, objId, chathubURI, appType, isOpen } = this.props;
+    if (objInstanceId && objId) {
+      setApiInstance(apiHost, token, username);
+      setPayloadDefault(objInstanceId, objId, userId, username, appType);
+      ChatHubHelper.storeChatHubURI(chathubURI);
+      this._getListMessage();
+      document.addEventListener('new-messages', (e) => this.handleNewMessageListener(e), false);
+      document.addEventListener('edit-message', (e) => this.handleEditDeleteMessageListener(e, 'edit'), false);
+      document.addEventListener('delete-message', (e) => this.handleEditDeleteMessageListener(e, 'delete'), false);
+      this.setState({ isOpen: isOpen == 1 })
+    } else {
+      this.setState({ loading: false })
+    }
   }
 
   componentDidMount() {
+    moment.locale('vi')
     this.setupData();
   }
 
   handleNewMessageListener(e) {
+    window.parent.postMessage('NEW MESSAGE', '*')
     setTypeOfAction('add');
     var audio = new Audio(incomingMessageSound);
     var resp = audio.play();
@@ -207,11 +214,14 @@ class PopupChat extends Component {
       }
     }
     return <div>
-      {!isOpen ?   
-      <div onClick={() => this.setState({ isOpen: true})} className='sc-launcher'>
+      {/* {!isOpen ?   
+      <div onClick={() => {
+        window.parent.postMessage('OPEN', '*')
+        this.setState({ isOpen: true})
+      }} className='sc-launcher'>
         <img alt='bubble' src={copyIcon} />
         <span>Trao đổi</span>
-      </div> : null}
+      </div> : null} */}
       <ChatWindow
         isLoadMore={isLoadMore}
         onLoadMore={this.onLoadMore}
@@ -225,7 +235,7 @@ class PopupChat extends Component {
         messageList={listMessagesParse}
         isOpen={isOpen}
         onClose={() => {
-          this.setState({ isOpen: false });
+          window.parent.postMessage('CLOSE', '*')
         }}
         isAllowAddNew={isAllowAddNew}
         isAllowAttach={isAllowAttach}
@@ -233,17 +243,6 @@ class PopupChat extends Component {
     </div>;
   }
 }
-
-
-PopupChat.propTypes = {
-  apiHost: PropTypes.string.isRequired,
-  token: PropTypes.string.isRequired,
-  objInstanceId: PropTypes.string.isRequired,
-  objId: PropTypes.string.isRequired,
-  username: PropTypes.object.isRequired,
-  userId: PropTypes.number.isRequired,
-  chathubURI: PropTypes.string.isRequired,
-};
 
 export default PopupChat;
 

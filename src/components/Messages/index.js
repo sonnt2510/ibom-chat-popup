@@ -30,7 +30,7 @@ class Message extends Component {
 
   renderOption = () => {
     const { type, id, isAllowDelete, isAllowEdit } = this.props.message;
-
+    if (!isAllowDelete && !isAllowEdit && (type === 'image' || type === 'file')) return null
     return (
       id ?
         <div style={{ cursor: 'pointer' }} className='sc-message--waiting-icon-wrap'>
@@ -73,12 +73,13 @@ class Message extends Component {
 
   render() {
     const { data, author, type, showName, showDate } = this.props.message;
+    console.log(this.props.message)
     const date = data.date.split(' ')[0];
     let contentClassList = [
       'sc-message--content',
       (author === 'me' ? 'sent' : 'received')
     ];
-    console.log('adsa', this.props.message)
+
     return (
       <div>
         {showDate ? <p className='sc-message--date'>{moment(date, 'DD/MM/YYYY').format('MMM DD, yyyy')}</p> : null}

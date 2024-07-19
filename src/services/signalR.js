@@ -12,6 +12,7 @@ const deleteMessageEvent = new CustomEvent('delete-message');
 
 export class ChatHubHelper {
   static _isValidMessage = (data) => {
+    console.log('dadsada',data)
     const event = data.event;
     if (!event) {
       return false;
@@ -32,7 +33,6 @@ export class ChatHubHelper {
     {
     
       const typingData = data.payload;
-      console.log('asdasdas', typingData && typingData.userName && typingData.typingState && !isSentByThisDevice && typingData.objectId == objId && typingData.objectInstanceId == objInstanceId)
       return typingData && typingData.userName && typingData.typingState && !isSentByThisDevice && typingData.objectId == objId && typingData.objectInstanceId == objInstanceId ;
     }
 
@@ -132,6 +132,7 @@ export class ChatHubHelper {
   };
 
   static sendMessageToUsers = (userIds, payload) => {
+    console.log(payload, userIds)
     const connectionHub = ChatHubHelper.getConnectionHub();
     connectionHub.invoke('SendMessageToUsers', userIds, JSON.stringify(payload)).then(() => {
     }).catch(error => {

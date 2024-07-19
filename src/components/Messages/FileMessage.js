@@ -4,30 +4,36 @@ import React from 'react';
 
 const FileMessage = (props) => {
   const { date, type, url, fileName, name, showName } = props.data;
+
   const splitDate = date.split(' ');
   const renderFile = () => {
     if (type === 'image') {
       return <img className="sc-message--image" alt="image-message" src={url} />;
     }
     return <span>
-      <p style={{ marginTop: type !== 'image' && props.author === 'me' ? 15 : 0 }}>{fileName}</p>
+      <p style={{ marginTop: type !== 'image' && !props.showName ? 15 : 0 }}>{fileName}</p>
     </span>;
   };
 
   return (
     <a
       style={{
-        color: props.author === 'them' ? '#263238' : 'white',
-        backgroundColor: props.author === 'them' ? '#f4f7f9' : '#39518B'
+        color: props.author === 'them' ? '#263238' : 'black',
+        backgroundColor: props.author === 'them' ? '#f4f7f9' : '#E5EFFF',
+        paddingBottom: 20,
+        paddingLeft: type === 'image' ? 0 : 15,
+        paddingRight: type === 'image' ? 0 : 15,
       }}
       target='blank' className="sc-message--file" href={url} download={fileName}
     >
-      {props.author === 'them' && showName ? <p className="sc-message--fileAuthorName">{name}</p> : null}
+      {props.author === 'them' && props.showName ? <p style={{marginLeft: type === 'image' && props.author === 'them' && props.showName ? 15 : 0}} className="sc-message--fileAuthorName">{name}</p> : null}
       {renderFile()}
       <p style={{
         marginTop: 10,
         textAlign: props.author === 'them' ? 'left' : 'right',
-        color: props.author === 'them' ? '#263238' : 'white',
+        color: props.author === 'them' ? '#263238' : 'black',
+        marginRight: type === 'image' ? 15 : 0,
+        marginLeft: type === 'image' ? 15 : 0
       }} className="sc-message--time">{splitDate[splitDate.length - 1]}</p>
     </a>
   );
