@@ -21,6 +21,18 @@ export const setPayloadDefault = (instanceId, oId, user, username, apptype) => {
   appType = apptype;
 };
 
+export const requestGetListGroupChat = async (keySearch) => {
+  const page = 1;
+  const limit = 50;
+  let formdata = new FormData();
+  formdata.append('page', page);
+  formdata.append('limit', limit);
+  formdata.append('key_search', keySearch);
+  formdata.append('app_type', appType);
+  const response = await doPostRequest('common/comment.do', formdata);
+  return response?.data?.itemList ?? []
+}
+
 export const requestGetListMessage = async (lastId) => {
   sessionId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
   let index = 1;

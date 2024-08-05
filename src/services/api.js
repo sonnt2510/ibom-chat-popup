@@ -7,6 +7,7 @@ let responseHandler;
 const defaultResponseHandler = new DefaultResponseHandler();
 
 export const setApiInstance = (apiHost, token, username) => {
+  console.log('1111')
   url = apiHost;
   const headers = {
     'Content-Type': 'multipart/form-data',
@@ -40,6 +41,7 @@ const executeRequest = (promise) => {
 
 export const doPostRequest = (endpoint, payload) => {
   const api = apiInstance;
+  console.log('api', api)
   return executeRequest(api.post(url + endpoint, payload));
 };
 

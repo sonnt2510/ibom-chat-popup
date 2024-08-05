@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
-import PopupChat from '../../src';
+import MainPage from '../../src';
 
 class Demo extends Component {
   
@@ -16,10 +16,11 @@ class Demo extends Component {
     const userId = params.get('userid')
     const chathubURI = params.get('chathuburi')
     const appType = params.get('apptype')
-    const isOpen = params.get('isopen')
+    const isList = params.get('islist')
+
 
     return <div>
-      <PopupChat
+      <MainPage
         apiHost={apiHost}
         token={token}
         objInstanceId={objInstanceId}
@@ -28,7 +29,7 @@ class Demo extends Component {
         userId={userId}
         chathubURI={chathubURI}
         appType={appType}
-        isOpen={isOpen}
+        isList={isList}
       />
     </div>;
   }
@@ -43,7 +44,7 @@ Demo.defaultProps = {
   userid: 39093,
   chathuburi: 'https://chathub.ibom.vn/',
   apptype: 2,
-  isopen: 1
+  islist: 1
 };
 
 render(<Demo {...(document.querySelector('#demo').dataset)}/>, document.querySelector('#demo'));
