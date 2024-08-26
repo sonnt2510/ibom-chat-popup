@@ -26,9 +26,10 @@ class ChatWindow extends Component {
     return (
       <div className={classList.join(' ')}>
         <Header
-          teamName={this.props.agentProfile.teamName}
-          // imageUrl={this.props.agentProfile.imageUrl}
+          teamName={this.props.profile.roomName}
+          url={this.props.profile.url}
           onClose={this.props.onClose}
+          isDetail={this.props.profile.isDetail}
         />
         <MessageList
           isLoadMore={this.props.isLoadMore}
@@ -36,7 +37,6 @@ class ChatWindow extends Component {
           optionClick={this.props.optionClick}
           loading={this.props.loading}
           messages={messageList}
-        // imageUrl={this.props.agentProfile.imageUrl}
         />
         <UserInput
           isAllowAddNew={this.props.isAllowAddNew}

@@ -8,16 +8,16 @@ class Demo extends Component {
     const search = window.location.search;
     const params = new URLSearchParams(search);
 
-    const apiHost = params.get('apihost')
-    const token = params.get('token')
-    const objInstanceId = params.get('objinstanceid')
-    const objId = params.get('objid')
-    const userName = params.get('username')
-    const userId = params.get('userid')
-    const chathubURI = params.get('chathuburi')
-    const appType = params.get('apptype')
-    const isList = params.get('islist')
-
+    const apiHost = params.get('apihost');
+    const token = params.get('token');
+    const objInstanceId = params.get('objinstanceid');
+    const objId = params.get('objid');
+    const userName = params.get('username');
+    const userId = params.get('userid');
+    const chathubURI = params.get('chathuburi');
+    const appType = params.get('apptype');
+    const isList = params.get('islist');
+    const isDetail = params.get('isdetail');
 
     return <div>
       <MainPage
@@ -30,6 +30,7 @@ class Demo extends Component {
         chathubURI={chathubURI}
         appType={appType}
         isList={isList}
+        isDetail={isDetail}
       />
     </div>;
   }
@@ -44,7 +45,8 @@ Demo.defaultProps = {
   userid: 39093,
   chathuburi: 'https://chathub.ibom.vn/',
   apptype: 2,
-  islist: 1
+  islist: 1,
+  isDetail: 0
 };
 
 render(<Demo {...(document.querySelector('#demo').dataset)}/>, document.querySelector('#demo'));

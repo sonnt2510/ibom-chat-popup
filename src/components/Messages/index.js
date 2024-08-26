@@ -3,9 +3,9 @@ import TextMessage from './TextMessage';
 import FileMessage from './FileMessage';
 import waitingIcon from '../../assets/waiting.png';
 import copyIcon from '../../assets/copy-icon.png';
-import editIcon from '../../assets/edit-icon.webp';
+import editIcon from '../../assets/edit-icon.png';
 import trashIcon from '../../assets/trash-icon.png';
-import verticalDot from '../../assets/vertical_dot.webp';
+import verticalDot from '../../assets/vertical_dot.png';
 import Popup from 'reactjs-popup';
 import moment from 'moment';
 
@@ -41,7 +41,7 @@ class Message extends Component {
             }}
             trigger={
               <img className='sc-message--menu-icon' alt='loading-message' src={verticalDot} />
-            } position="left top"
+            } position="left"
           >
             <div style={{ paddingLeft: 5, paddingRight: 5 }}>
               {type === 'text' ?
@@ -57,10 +57,10 @@ class Message extends Component {
                 </div>
                 : null}
               {isAllowDelete ?  
-              <div onClick={() => this.onOptionClick('delete')} style={{ border: 'none' }} className='sc-message-option-wrap'>
-                <img src={trashIcon} className='sc-message-option-icon sc-message-option-icon-trash' alt='trash' />
-                <span style={{ color: '#FF474C' }}>Xoá</span>
-              </div> : null}
+                <div onClick={() => this.onOptionClick('delete')} style={{ border: 'none' }} className='sc-message-option-wrap'>
+                  <img src={trashIcon} className='sc-message-option-icon sc-message-option-icon-trash' alt='trash' />
+                  <span style={{ color: '#FF474C' }}>Xoá</span>
+                </div> : null}
             </div>
           </Popup>
         </div>
@@ -73,7 +73,6 @@ class Message extends Component {
 
   render() {
     const { data, author, type, showName, showDate } = this.props.message;
-    console.log(this.props.message)
     const date = data.date.split(' ')[0];
     let contentClassList = [
       'sc-message--content',
@@ -82,7 +81,7 @@ class Message extends Component {
 
     return (
       <div>
-        {showDate ? <p className='sc-message--date'>{moment(date, 'DD/MM/YYYY').format('MMM DD, yyyy')}</p> : null}
+        {showDate ? <p className='sc-message--date'>{date}</p> : null}
         <div className="sc-message">
           <div className={contentClassList.join(' ')}>
             <div className="sc-message--avatar" style={{

@@ -1,0 +1,45 @@
+
+.filter-list-body {
+    padding-top: 80px;
+}
+
+.filter-list-item {
+    border-bottom: 1px solid #cecece;
+    padding: 5px 15px;
+    cursor: pointer;
+    
+    &:hover {
+        background-color: #f3f3f3;
+    }
+}
+
+.filter-screen-sub-header {
+    background-color: red;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    padding-right: 30px;
+    font-size: 13px;
+    color: rgb(163, 0, 163);
+    font-weight: 500;
+    background-color: #e5e4e4;
+    position: fixed;
+    width: 100%;
+    margin-top: 54px;
+}
+
+.filter-list-button-load-more {
+    height: 42px;
+    width: 50vw;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    background-color: #4f72c2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    cursor: pointer;
+}

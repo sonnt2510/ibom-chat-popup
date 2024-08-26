@@ -134,6 +134,10 @@
   font-size: 40px;
 }
 
+.sc-message--file-icon {
+  font-size: 40px;
+}
+
 .sc-message--file {
   padding-bottom: 5px;
   /* background-color: #E5EFFF !important; */

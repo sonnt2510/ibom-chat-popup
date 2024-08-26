@@ -103,7 +103,7 @@ class UserInput extends Component {
   }
 
   render() {
-    if (!this.props.isAllowAddNew) return null
+    if (!this.props.isAllowAddNew) return null;
     const { inputActive, inputHasClose } = this.state;
     return (
       <form className={`sc-user-input ${(inputActive ? 'active' : '')}`}>

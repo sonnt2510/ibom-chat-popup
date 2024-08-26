@@ -1,14 +1,19 @@
 import React, { Component } from 'react';
 import './styles';
 import './styles/base.css';
-import PropTypes from 'prop-types';
-import { setApiInstance } from './services/api';
 import moment from 'moment';
-import { requestGetListMessage, setPayloadDefault, setMessageId, getMessageId, requestSendMessage, requestDeleteMessage, setTypeOfAction } from './services/request';
+import {
+  requestGetListMessage,
+  setMessageId,
+  getMessageId,
+  requestSendMessage,
+  requestDeleteMessage,
+  setTypeOfAction,
+  requestGetSetting
+} from './services/request';
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
 import incomingMessageSound from './assets/sounds/notification.mp3';
-import copyIcon from './assets/bubble-icon.png';
 import ChatWindow from './components/ChatWindow';
 
 class PopupChat extends Component {
@@ -21,53 +26,66 @@ class PopupChat extends Component {
       roomName: '',
       isLoadMore: false,
       isAllowAddNew: false,
-      isAllowAttach: false
+      isAllowAttach: false,
+      url: '',
     };
   }
 
   setupData() {
-    const { apiHost, token, username, objInstanceId, userId, objId, chathubURI, appType } = this.props;
+    const { objInstanceId, objId } = this.props;
     if (objInstanceId && objId) {
-      setApiInstance(apiHost, token, username);
-      setPayloadDefault(objInstanceId, objId, userId, username, appType);
-      ChatHubHelper.storeChatHubURI(chathubURI);
       this._getListMessage();
-      document.addEventListener('new-messages', (e) => this.handleNewMessageListener(e), false);
-      document.addEventListener('edit-message', (e) => this.handleEditDeleteMessageListener(e, 'edit'), false);
-      document.addEventListener('delete-message', (e) => this.handleEditDeleteMessageListener(e, 'delete'), false);
+      this._getInfo();
+      document.addEventListener(
+        'new-messages',
+        (e) => this.handleNewMessageListener(e),
+        false
+      );
+      document.addEventListener(
+        'edit-message',
+        (e) => this.handleEditDeleteMessageListener(e, 'edit'),
+        false
+      );
+      document.addEventListener(
+        'delete-message',
+        (e) => this.handleEditDeleteMessageListener(e, 'delete'),
+        false
+      );
     } else {
-      this.setState({ loading: false })
+      this.setState({ loading: false });
     }
   }
 
   componentDidMount() {
-    moment.locale('vi')
+    moment.locale('vi');
     setTimeout(() => {
       this.setupData();
-    }, 100)
+    }, 100);
   }
 
   handleNewMessageListener(e) {
-    window.parent.postMessage('NEW MESSAGE', '*')
+    window.parent.postMessage('NEW MESSAGE', '*');
     setTypeOfAction('add');
     var audio = new Audio(incomingMessageSound);
     var resp = audio.play();
-    if (resp!== undefined) {
-      resp.then(_ => {
-        audio.play()
-      }).catch(error => {
-        console.log('error', error);
-      });
+    if (resp !== undefined) {
+      resp
+        .then((_) => {
+          audio.play();
+        })
+        .catch((error) => {
+          console.log('error', error);
+        });
     }
     this.setState({
-      messageList: [...this.state.messageList, ...e.newMessage]
+      messageList: [...this.state.messageList, ...e.newMessage],
     });
   }
 
   handleEditDeleteMessageListener(e, type) {
     const message = e.message;
     const { messageList } = this.state;
-    const index = messageList.findIndex(e => e.id == message.messageId);
+    const index = messageList.findIndex((e) => e.id == message.messageId);
     if (index > 0) {
       if (type === 'edit') {
         messageList[index].data.text = message.content;
@@ -78,15 +96,22 @@ class PopupChat extends Component {
     }
   }
 
+  async _getInfo() {
+    const response = await requestGetSetting();
+    this.setState({
+      roomName: response ? response.title : '',
+      isAllowAddNew: response ? response.isAllowAddNew : false,
+      isAllowAttach: response ? response.isAllowAttach : false,
+      url: response ? response.url : '',
+    });
+  }
+
   async _getListMessage() {
     const response = await requestGetListMessage();
     ChatHubHelper.startConnection(this.props.userId);
     this.setState({
-      teamName: response ? response.title : '',
       messageList: response ? response.list : [],
       loading: false,
-      isAllowAddNew: response ? response.isAllowAddNew : false,
-      isAllowAttach: response ? response.isAllowAttach : false
     });
   }
 
@@ -94,11 +119,15 @@ class PopupChat extends Component {
     const { messageList } = this.state;
     const messageId = getMessageId();
     if (messageId) {
-      const findIndex = messageList.findIndex(e => e.id === messageId);
+      const findIndex = messageList.findIndex((e) => e.id === messageId);
       messageList[findIndex].id = '';
       messageList[findIndex].data.text = message.data.text;
       this.setState({ messageList }, () => {
-        this._mapIdAfterResponse(message.data.text, messageList[findIndex].index, messageId);
+        this._mapIdAfterResponse(
+          message.data.text,
+          messageList[findIndex].index,
+          messageId
+        );
       });
     } else {
       setTypeOfAction('add');
@@ -106,11 +135,14 @@ class PopupChat extends Component {
       message.id = null;
       message.index = index;
       message.data.date = moment().format('DD/MM/YYYY hh:mmA');
-      this.setState({
-        messageList: [...messageList, message]
-      }, () => {
-        this._mapIdAfterResponse(message.data.text, index);
-      });
+      this.setState(
+        {
+          messageList: [...messageList, message],
+        },
+        () => {
+          this._mapIdAfterResponse(message.data.text, index);
+        }
+      );
     }
   }
 
@@ -119,14 +151,14 @@ class PopupChat extends Component {
     if (response.isSuccess) {
       const id = response.commentId || propsId;
       const listAssign = Object.assign([], this.state.messageList);
-      const findIndex = listAssign.findIndex(e => e.index === index);
+      const findIndex = listAssign.findIndex((e) => e.index === index);
       listAssign[findIndex].id = id;
       listAssign[findIndex].isAllowEdit = response.isAllowEdit;
       listAssign[findIndex].isAllowDelete = response.isAllowEdit;
       this.setState({ messageList: listAssign });
       setMessageId('');
     }
-  }
+  };
 
   _onFilesSelected(fileList) {
     const fileType = fileList.type.includes('image') ? 'image' : 'file';
@@ -140,19 +172,48 @@ class PopupChat extends Component {
         url: window.URL.createObjectURL(fileList),
         fileName: fileList.name,
         date: moment().format('DD/MM/YYYY hh:mmA'),
-        type: fileType
-      }
+        type: fileType,
+      },
     };
-    this.setState({
-      messageList: [...this.state.messageList, objFile]
-    }, () => {
-      this._mapIdAfterResponse('', index, '', fileList);
-    });
+    this.setState(
+      {
+        messageList: [...this.state.messageList, objFile],
+      },
+      () => {
+        this._mapIdAfterResponse('', index, '', fileList);
+      }
+    );
+  }
+
+  async copyToClipboard(textToCopy) {
+    // Navigator clipboard api needs a secure context (https)
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(textToCopy);
+    } else {
+      // Use the 'out of viewport hidden text area' trick
+      const textArea = document.createElement('textarea');
+      textArea.value = textToCopy;
+            
+      // Move textarea out of the viewport so it's not visible
+      textArea.style.position = 'absolute';
+      textArea.style.left = '-999999px';
+            
+      document.body.prepend(textArea);
+      textArea.select();
+
+      try {
+        document.execCommand('copy');
+      } catch (error) {
+        console.error(error);
+      } finally {
+        textArea.remove();
+      }
+    }
   }
 
   optionClick = (message, type) => {
     if (type === 'copy') {
-      navigator.clipboard.writeText(message.data.text);
+      this.copyToClipboard(message.data.text);
     } else if (type === 'edit') {
       setTypeOfAction('edit');
       UserInputHelper.setText(message.data.text);
@@ -164,14 +225,14 @@ class PopupChat extends Component {
       requestDeleteMessage(message.id);
       this._handleDeteleMessage(message.id);
     }
-  }
+  };
 
   _handleDeteleMessage = (id) => {
     const { messageList } = this.state;
-    const index = messageList.findIndex(e => e.id === id);
+    const index = messageList.findIndex((e) => e.id === id);
     messageList.splice(index, 1);
     this.setState({ messageList });
-  }
+  };
 
   onLoadMore = async () => {
     setTypeOfAction('loadMore');
@@ -189,10 +250,18 @@ class PopupChat extends Component {
     } else {
       this.setState({ isLoadMore: false });
     }
-  }
+  };
 
   render() {
-    const { teamName, isOpen, messageList, loading, isLoadMore, isAllowAddNew, isAllowAttach } = this.state;
+    const {
+      roomName,
+      messageList,
+      loading,
+      isLoadMore,
+      isAllowAddNew,
+      isAllowAttach,
+      url,
+    } = this.state;
     const listMessagesParse = JSON.parse(JSON.stringify(messageList));
 
     for (const i in listMessagesParse) {
@@ -201,49 +270,53 @@ class PopupChat extends Component {
         if (!listMessagesParse[i - 1]) {
           listMessagesParse[i].showName = true;
         } else {
-          if (listMessagesParse[i].data.name !== listMessagesParse[i - 1].data.name) {
+          if (
+            listMessagesParse[i].data.name !==
+            listMessagesParse[i - 1].data.name
+          ) {
             listMessagesParse[i].showName = true;
           }
         }
       }
       if (listMessagesParse[i - 1]) {
         const currentMessageDate = listMessagesParse[i].data.date.split(' ')[0];
-        const previousMessageDate = listMessagesParse[i - 1].data.date.split(' ')[0];
-        if (!moment(currentMessageDate, 'DD-MM-YYYY').isSame(moment(previousMessageDate, 'DD-MM-YYYY'))) {
+        const previousMessageDate =
+          listMessagesParse[i - 1].data.date.split(' ')[0];
+        if (
+          !moment(currentMessageDate, 'DD-MM-YYYY').isSame(
+            moment(previousMessageDate, 'DD-MM-YYYY')
+          )
+        ) {
           listMessagesParse[i].showDate = true;
         }
       }
     }
-    return <div>
-      {/* {!isOpen ?   
-      <div onClick={() => {
-        window.parent.postMessage('OPEN', '*')
-        this.setState({ isOpen: true})
-      }} className='sc-launcher'>
-        <img alt='bubble' src={copyIcon} />
-        <span>Trao đổi</span>
-      </div> : null} */}
-      <ChatWindow
-        isLoadMore={isLoadMore}
-        onLoadMore={this.onLoadMore}
-        optionClick={this.optionClick}
-        loading={loading}
-        agentProfile={{
-          teamName
-        }}
-        onMessageWasSent={this._onMessageWasSent.bind(this)}
-        onFilesSelected={this._onFilesSelected.bind(this)}
-        messageList={listMessagesParse}
-        isOpen={true}
-        onClose={() => {
-          window.parent.postMessage('CLOSE', '*')
-        }}
-        isAllowAddNew={isAllowAddNew}
-        isAllowAttach={isAllowAttach}
-      />
-    </div>;
+
+    return (
+      <div>
+        <ChatWindow
+          isLoadMore={isLoadMore}
+          onLoadMore={this.onLoadMore}
+          optionClick={this.optionClick}
+          loading={loading}
+          profile={{
+            roomName,
+            url,
+            isDetail: this.props.isDetail
+          }}
+          onMessageWasSent={this._onMessageWasSent.bind(this)}
+          onFilesSelected={this._onFilesSelected.bind(this)}
+          messageList={listMessagesParse}
+          isOpen={true}
+          onClose={() => {
+            window.parent.postMessage('CLOSE', '*');
+          }}
+          isAllowAddNew={isAllowAddNew}
+          isAllowAttach={isAllowAttach}
+        />
+      </div>
+    );
   }
 }
 
 export default PopupChat;
-

@@ -30,11 +30,98 @@ export const requestGetListGroupChat = async (keySearch) => {
   formdata.append('key_search', keySearch);
   formdata.append('app_type', appType);
   const response = await doPostRequest('common/comment.do', formdata);
-  return response?.data?.itemList ?? []
-}
+  return response?.data?.itemList ?? [];
+};
+
+export const requestGetListFilterResult = async (
+  keySearch,
+  objectId,
+  apiUrl,
+  page = 1
+) => {
+  let formdata = new FormData();
+  formdata.append('app_type', appType);
+  formdata.append('key_search', keySearch);
+  formdata.append('object_id', objectId);
+  formdata.append('page', page);
+  formdata.append('limit', 20);
+  const response = await doPostRequest(apiUrl, formdata);
+  if (response.data.result === 'success') {
+    return {
+      items: response.data.items,
+      totalItem: response.data.totalItem,
+    };
+  }
+  return {
+    items: [],
+    totalItem: 0,
+  };
+};
+
+export const requestGetListFilterOptions = async () => {
+  let formdata = new FormData();
+  formdata.append('app_type', appType);
+  const response = await doPostRequest('comment/form_search.do', formdata);
+  let filterOption = {
+    isShow: false,
+  };
+  let filterInput = {
+    isShow: false,
+  };
+  let submitFormUrl = '';
+  if (response.data.result === 'success') {
+    const items = response.data.items;
+    submitFormUrl = response?.data?.submit_api?.ref_api ?? '';
+    const dropdownOtion = items.filter((e) => e.input_type == 'select');
+    const filterInputOption = items.filter((e) => e.input_type == 'textbox');
+
+    if (dropdownOtion.length) {
+      filterOption = {
+        isShow: true,
+        options: dropdownOtion[0].options,
+        label: dropdownOtion[0].label,
+      };
+    }
+
+    if (filterInputOption.length) {
+      filterInput = {
+        isShow: true,
+        label: filterInputOption[0].label,
+      };
+    }
+  }
+  return {
+    filterInput,
+    filterOption,
+    submitFormUrl,
+  };
+};
+
+export const requestGetSetting = async () => {
+  let formdata = new FormData();
+  formdata.append('object_instance_id', objInstanceId);
+  formdata.append('object_id', objId);
+  formdata.append('app_type', appType);
+  formdata.append('mode', 'info');
+  const response = await doPostRequest('common/comment.do', formdata);
+  if (response.data.result === 'success') {
+    userList = response.data.userList.map((e) => {
+      return JSON.stringify(e.user_id);
+    });
+  }
+  return {
+    title: response.data.OBJECT_INSTANCE_NAME,
+    isAllowAddNew: response.data.allow_add_new === 1,
+    isAllowAttach: response.data.allow_attach === 1,
+    url: response.data.OBJECT_INSTANCE_URL,
+  };
+};
 
 export const requestGetListMessage = async (lastId) => {
-  sessionId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
+  sessionId = Math.random()
+    .toString(36)
+    .replace(/[^a-z]+/g, '')
+    .substr(2, 10);
   let index = 1;
   let formdata = new FormData();
   formdata.append('object_instance_id', objInstanceId);
@@ -46,30 +133,39 @@ export const requestGetListMessage = async (lastId) => {
   const messageList = [];
   if (response.data.result === 'success') {
     const listMessageResponse = response.data.itemList.reverse();
-    userList = response.data.userList.map(e => {
-      return JSON.stringify(e.user_id);
-    });
     for (const i in listMessageResponse) {
-      const { comment_content, created_date_view, avatar, fileList, user_created_name, comment_id, text_align, allow_del, allow_edit } = listMessageResponse[i];
+      const {
+        comment_content,
+        created_date_view,
+        avatar,
+        fileList,
+        user_created_name,
+        comment_id,
+        text_align,
+        allow_del,
+        allow_edit,
+      } = listMessageResponse[i];
       let objMessage = {
         index,
         id: comment_id,
         author: text_align === 2 ? 'me' : 'them',
         type: 'text',
-        isAllowDelete: allow_del === 0,
-        isAllowEdit: allow_edit === 0,
+        isAllowDelete: allow_del === 1,
+        isAllowEdit: allow_edit === 1,
         data: {
           name: user_created_name,
           text: comment_content,
           date: created_date_view,
-          avatar
-        }
+          avatar,
+        },
       };
 
       if (fileList.length) {
         for (const i in fileList) {
           const { extension, file_path, file_name } = fileList[i];
-          const type = imageExtensions.includes(extension.replace('.', '')) ? 'image' : 'file';
+          const type = imageExtensions.includes(extension.replace('.', ''))
+            ? 'image'
+            : 'file';
           const fileMessage = {
             index,
             id: comment_id,
@@ -82,8 +178,8 @@ export const requestGetListMessage = async (lastId) => {
               url: file_path,
               fileName: file_name,
               date: created_date_view,
-              avatar
-            }
+              avatar,
+            },
           };
           messageList.push(fileMessage);
           index++;
@@ -98,10 +194,16 @@ export const requestGetListMessage = async (lastId) => {
   }
   return {
     list: messageList,
-    title: response.data.OBJECT_INSTANCE_NAME,
-    isAllowAddNew: response.data.allow_add_new === 1,
-    isAllowAttach: response.data.allow_attach === 1
   };
+};
+
+export const requestSendIsReadComment = async (objId, objInstanceId) => {
+  let formdata = new FormData();
+  formdata.append('object_instance_id', objInstanceId);
+  formdata.append('object_id', objId);
+  formdata.append('app_type', appType);
+  await doPostRequest('comment/read.do', formdata);
+  return true;
 };
 
 export const requestSendMessage = async (comment, files) => {
@@ -113,9 +215,8 @@ export const requestSendMessage = async (comment, files) => {
   formdata.append('mode', 'submit');
   formdata.append('comment_content', comment);
   formdata.append('FileUpload', files);
-  formdata.append('app_type', 2);
+  formdata.append('app_type', appType);
   const response = await doPostRequest('common/comment.do', formdata);
-  console.log('res',response)
   if (messageId) {
     payloadEvent.content = comment;
     payloadEvent.messageId = messageId;
@@ -123,11 +224,12 @@ export const requestSendMessage = async (comment, files) => {
   } else {
     ChatHelper.sendNewMessageEvent(response.data.commentInfo);
   }
+
   return {
     isSuccess: response.data.result === 'success',
     commentId: response.data.comment_id,
-    isAllowDelete: response.data.allow_del == 1,
-    isAllowEdit: response.data.allow_edit == 1
+    isAllowDelete: response.data.commentInfo.allow_del == 1,
+    isAllowEdit: response.data.commentInfo.allow_edit == 1,
   };
 };
 
@@ -140,7 +242,7 @@ export const requestDeleteMessage = (id) => {
   formdata.append('object_id', objId);
   formdata.append('mode', 'delete');
   formdata.append('comment_id', id);
-  formdata.append('app_type', 2);
+  formdata.append('app_type', appType);
   doPostRequest('common/comment.do', formdata);
 };
 
@@ -164,7 +266,7 @@ export const getTypingPayload = () => {
   return {
     userName,
     objectId: Number(objId),
-    objectInstanceId: Number(objInstanceId)
+    objectInstanceId: Number(objInstanceId),
   };
 };
 
@@ -183,5 +285,3 @@ export const getObjId = () => {
 export const getObjInstanceId = () => {
   return objInstanceId;
 };
-
-
