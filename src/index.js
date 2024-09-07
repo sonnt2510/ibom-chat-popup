@@ -27,7 +27,7 @@ class MainPage extends Component {
   }
 
   componentDidMount() {
-    moment.locale('vi');
+    moment.locale('en');
     this.setupData();
   }
 

@@ -13,11 +13,11 @@ class Header extends Component {
         <div className="sc-header--team-name">{this.props.teamName}</div>
         {this.props.isDetail == 1 ? null : (
           <div className="sc-header--close-button" onClick={() => this.onClickDetail()}>
-            <img style={{ padding: 8 }} src={detailIcon} alt="" />
+            <img className="sc-header--image" style={{ padding: 8 }} src={detailIcon} alt="" />
           </div>
         )}
         <div className="sc-header--close-button" onClick={this.props.onClose}>
-          <img src={closeIcon} alt="" />
+          <img className="sc-header--image" src={closeIcon} alt="" />
         </div>
       </div>
     );

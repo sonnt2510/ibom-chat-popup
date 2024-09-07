@@ -206,7 +206,12 @@ export const requestSendIsReadComment = async (objId, objInstanceId) => {
   return true;
 };
 
-export const requestSendMessage = async (comment, files) => {
+export const requestSendMessage = async (
+  comment,
+  files,
+  allowEdit,
+  allowDel
+) => {
   const payloadEvent = getTypingPayload();
   let formdata = new FormData();
   formdata.append('comment_id', messageId);
@@ -220,22 +225,29 @@ export const requestSendMessage = async (comment, files) => {
   if (messageId) {
     payloadEvent.content = comment;
     payloadEvent.messageId = messageId;
-    ChatHelper.sendEditMessageEvent(comment, messageId);
+    ChatHelper.sendEditMessageEvent(comment, messageId, allowDel, allowEdit);
+    return {
+      isSuccess: response.data.result === 'success',
+      commentId: response.data.comment_id,
+      isAllowDelete: allowDel,
+      isAllowEdit: allowEdit,
+    };
   } else {
     ChatHelper.sendNewMessageEvent(response.data.commentInfo);
+    const allow_del = response.data.commentInfo.allow_del;
+    const allow_edit = response.data.commentInfo.allow_edit;
+    return {
+      isSuccess: response.data.result === 'success',
+      commentId: response.data.comment_id,
+      isAllowDelete: allow_del == 1,
+      isAllowEdit: allow_edit == 1,
+    };
   }
-
-  return {
-    isSuccess: response.data.result === 'success',
-    commentId: response.data.comment_id,
-    isAllowDelete: response.data.commentInfo.allow_del == 1,
-    isAllowEdit: response.data.commentInfo.allow_edit == 1,
-  };
 };
 
 export const requestDeleteMessage = (id) => {
   const payloadEvent = getTypingPayload();
-  payloadEvent.messageId = id;
+  payloadEvent.comment_id = id;
   ChatHelper.sendDeleteMessageEvent(payloadEvent);
   let formdata = new FormData();
   formdata.append('object_instance_id', objInstanceId);
@@ -265,8 +277,8 @@ export const setTypeOfAction = (type) => {
 export const getTypingPayload = () => {
   return {
     userName,
-    objectId: Number(objId),
-    objectInstanceId: Number(objInstanceId),
+    object_id: Number(objId),
+    object_instance_id: Number(objInstanceId),
   };
 };
 
@@ -284,4 +296,8 @@ export const getObjId = () => {
 
 export const getObjInstanceId = () => {
   return objInstanceId;
+};
+
+export const getCurrentUserId = () => {
+  return userId;
 };

@@ -14,10 +14,12 @@ export class ChatHelper {
     }
   }
 
-  static sendEditMessageEvent = (content, messageId) => {
+  static sendEditMessageEvent = (content, messageId, allowDel, allowEdit) => {
     let payloadData = getTypingPayload();
     payloadData.content = content;
-    payloadData.messageId = messageId;
+    payloadData.comment_id = messageId;
+    payloadData.allow_del = allowDel;
+    payloadData.allow_edit = allowEdit;
     ChatHubHelper.sendMessageToUsers(getUserIds(), {
       event: 'edit-message',
       payload: payloadData,

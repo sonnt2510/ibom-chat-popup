@@ -57,10 +57,10 @@ class PopupChat extends Component {
   }
 
   componentDidMount() {
-    moment.locale('vi');
+    moment.locale('en');
     setTimeout(() => {
       this.setupData();
-    }, 100);
+    }, 300);
   }
 
   handleNewMessageListener(e) {
@@ -83,9 +83,9 @@ class PopupChat extends Component {
   }
 
   handleEditDeleteMessageListener(e, type) {
-    const message = e.message;
+    const message = e.newMessage;
     const { messageList } = this.state;
-    const index = messageList.findIndex((e) => e.id == message.messageId);
+    const index = messageList.findIndex((e) => e.id == message.comment_id);
     if (index > 0) {
       if (type === 'edit') {
         messageList[index].data.text = message.content;
@@ -126,7 +126,10 @@ class PopupChat extends Component {
         this._mapIdAfterResponse(
           message.data.text,
           messageList[findIndex].index,
-          messageId
+          messageId,
+          [],
+          messageList[findIndex].isAllowEdit,
+          messageList[findIndex].isAlowDel
         );
       });
     } else {
@@ -146,15 +149,15 @@ class PopupChat extends Component {
     }
   }
 
-  _mapIdAfterResponse = async (message, index, propsId, files) => {
-    const response = await requestSendMessage(message, files);
+  _mapIdAfterResponse = async (message, index, propsId, files, allowEdit, allowDel) => {
+    const response = await requestSendMessage(message, files, allowEdit, allowDel);
     if (response.isSuccess) {
       const id = response.commentId || propsId;
       const listAssign = Object.assign([], this.state.messageList);
       const findIndex = listAssign.findIndex((e) => e.index === index);
       listAssign[findIndex].id = id;
-      listAssign[findIndex].isAllowEdit = response.isAllowEdit;
-      listAssign[findIndex].isAllowDelete = response.isAllowEdit;
+      listAssign[findIndex].isAllowEdit = response.isAllowEdit == 1;
+      listAssign[findIndex].isAllowDelete = response.isAllowEdit == 1;
       this.setState({ messageList: listAssign });
       setMessageId('');
     }

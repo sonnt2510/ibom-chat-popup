@@ -31,12 +31,14 @@
   bottom: 0;
   overflow-x: hidden;
   overflow-y: auto;
+
+
 }
 
 .sc-user-input--text:empty:before {
   content: attr(placeholder);
+  color: #888888;
   display: block; /* For Firefox */
-  color: rgba(86, 88, 103, 0.3);
   outline: none;
 }
 

@@ -2,13 +2,20 @@
 import imageExtensions from '../image-extensions.json';
 export class MessageHelper {
 
-    static convertMessageResponseToChatMessage = (payload) => {
+    static convertMessageResponseToChatMessage = (payload, currentUserId) => {
+
       const listMessage = [];
-      const { id, user_created_name, avatar, comment_content, created_date_view, fileList, comment_id } = payload;
+      const { user_created_name, avatar, comment_content, 
+        created_date_view, fileList, comment_id, allow_del,
+        allow_edit,
+        created_by
+      } = payload;
       let objMessage = {
         id: comment_id,
-        author: 'them',
+        author: currentUserId == created_by ? 'me' : 'them',
         type: 'text',
+        isAllowDelete: allow_del === 1,
+        isAllowEdit: allow_edit === 1,
         data: {
           name: user_created_name,
           text: comment_content,

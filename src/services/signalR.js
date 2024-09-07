@@ -1,6 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { MessageHelper } from '../helper/messageHelper';
-import { getObjId, getObjInstanceId, getSessionId } from './request';
+import { getCurrentUserId, getObjId, getObjInstanceId, getSessionId, getUserIds } from './request';
 
 let _chathubURI = '';
 let connection = null;
@@ -45,19 +45,19 @@ export class ChatHubHelper {
           typingData.userName &&
           typingData.typingState &&
           !isSentByThisDevice &&
-          typingData.objectId == objId &&
-          typingData.objectInstanceId == objInstanceId
+          typingData.object_id == objId &&
+          typingData.object_instance_id == objInstanceId
       );
     }
 
     case 'edit-message': {
       const editEventData = data.payload;
-      return editEventData && editEventData.messageId && !isSentByThisDevice;
+      return editEventData && editEventData.comment_id && !isSentByThisDevice;
     }
     case 'delete-message': {
       const deleteEventData = data.payload;
       return (
-        deleteEventData && deleteEventData.messageId && !isSentByThisDevice
+        deleteEventData && deleteEventData.comment_id && !isSentByThisDevice
       );
     }
     }
@@ -68,13 +68,15 @@ export class ChatHubHelper {
     const data = JSON.parse(dataString);
     const objId = getObjId();
     const objInstanceId = getObjInstanceId();
+    const userId = getCurrentUserId();
     const isFromList = !objId && !objInstanceId;
     if (ChatHubHelper._isValidMessage(data)) {
       const event = data.event;
       switch (event) {
       case 'new-messages': {
         const messages = MessageHelper.convertMessageResponseToChatMessage(
-          data.payload
+          data.payload,
+          userId
         );
         newMessageEvent.newMessage = isFromList ? data.payload : messages;
         document.dispatchEvent(newMessageEvent);
@@ -91,13 +93,13 @@ export class ChatHubHelper {
         break;
       }
       case 'edit-message': {
-        editMessageEvent.message = data.payload;
+        editMessageEvent.newMessage = data.payload;
         document.dispatchEvent(editMessageEvent);
         break;
       }
 
       case 'delete-message': {
-        deleteMessageEvent.message = data.payload;
+        deleteMessageEvent.newMessage = data.payload;
         document.dispatchEvent(deleteMessageEvent);
         break;
       }
