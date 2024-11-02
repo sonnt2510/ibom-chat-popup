@@ -7,20 +7,38 @@ import { ChatHubHelper } from '../services/signalR';
 import UserInputHelper from '../helper/userInputHelper';
 import { setMessageId } from '../services/request';
 import { ChatHelper } from '../helper/chatHelper';
+import EmojiIcon from './icons/EmojiIcon';
+import PopupWindow from './popups/PopupWindow';
+import EmojiPicker from './emoji/EmojiPicker';
+import { MessageEvent } from '../utils/Constants';
 
 class UserInput extends Component {
-
   constructor() {
     super();
     this.state = {
       inputActive: false,
       inputHasText: false,
-      inputHasClose: false
+      inputHasClose: false,
+      emojiPickerIsOpen: false,
+      emojiFilter: '',
+      replyObject: null,
     };
   }
 
   componentDidMount() {
-    document.addEventListener('edit-my-message', () => this.setState({ inputHasClose: true }), false);
+    document.addEventListener(
+      MessageEvent.EDIT_MESSAGE,
+      () => this.setState({ inputHasClose: true }),
+      false
+    );
+
+    document.addEventListener(
+      MessageEvent.REPLY_MESSAGE,
+      (e) => this.setState({ replyObject: e.replyObject }),
+      false
+    );
+
+    this.chatWindow = document.querySelector('.sc-chat-window');
   }
 
   handleKeyDown(event) {
@@ -30,8 +48,8 @@ class UserInput extends Component {
   }
 
   handleKeyUp(event) {
-    const inputHasText = event.target.innerHTML.length !== 0 &&
-      event.target.innerText !== '\n';
+    const inputHasText =
+      event.target.innerHTML.length !== 0 && event.target.innerText !== '\n';
     if (!inputHasText) {
       ChatHelper.sendTypingEvent('ended');
       ChatHubHelper.setTypingState('ended');
@@ -39,6 +57,7 @@ class UserInput extends Component {
       ChatHelper.sendTypingEvent('typing');
       ChatHubHelper.setTypingState('typing');
     }
+
     this.setState({ inputHasText });
   }
 
@@ -49,12 +68,13 @@ class UserInput extends Component {
   _submitText(event) {
     this.setState({ inputHasClose: false });
     event.preventDefault();
-    const text = this.userInput.textContent;
+    const text = this.userInput.innerText;
+    text.replace('<br>', '\r');
     if (text && text.length > 0) {
       this.props.onSubmit({
         author: 'me',
         type: 'text',
-        data: { text }
+        data: { text },
       });
       this.userInput.innerHTML = '';
       ChatHelper.sendTypingEvent('ended');
@@ -79,57 +99,118 @@ class UserInput extends Component {
         </div>
       );
     }
-    return (
-      this.props.isAllowAttach ? 
-        <div className="sc-user-input--button">
-          <FileIcon onClick={this._showFilePicker.bind(this)} />
-          <input
-            type="file"
-            // name="files[]"
-            ref={(e) => { this._fileUploadButton = e; }}
-            onChange={this._onFilesSelected.bind(this)}
-          />
-        </div> : null
-    );
+    return this.props.isAllowAttach ? (
+      <div className="sc-user-input--button">
+        <FileIcon onClick={this._showFilePicker.bind(this)} />
+        <input
+          type="file"
+          // name="files[]"
+          ref={(e) => {
+            this._fileUploadButton = e;
+          }}
+          onChange={this._onFilesSelected.bind(this)}
+        />
+      </div>
+    ) : null;
   }
 
   onClickCloseEdit = () => {
     if (this.userInput) {
       this.userInput.blur();
-      this.userInput.textContent = '';
+      this.userInput.innerHtml = '';
       setMessageId('');
-      this.setState({ inputHasClose: false, inputHasText: false, inputActive: false });
+      this.setState({
+        inputHasClose: false,
+        inputHasText: false,
+        inputActive: false,
+      });
     }
-  }
+  };
+
+  toggleEmojiPicker = (e) => {
+    e.preventDefault();
+    if (!this.state.emojiPickerIsOpen) {
+      this.setState({ emojiPickerIsOpen: true });
+    }
+  };
+
+  closeEmojiPicker = (e) => {
+    if (this.chatWindow.contains(e.target)) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    this.setState({ emojiPickerIsOpen: false });
+  };
+
+  _handleEmojiPicked = (emoji) => {
+    this.setState({ emojiPickerIsOpen: false });
+    this.userInput.innerHTML += emoji;
+    this.userInput.focus();
+  };
+
+  _renderEmojiPopup = () => (
+    <PopupWindow
+      isOpen={this.state.emojiPickerIsOpen}
+      onClickedOutside={this.closeEmojiPicker}
+    >
+      <EmojiPicker
+        onEmojiPicked={this._handleEmojiPicked}
+        filter={this.state.emojiFilter}
+      />
+    </PopupWindow>
+  );
 
   render() {
+    const focusInputEvent = new CustomEvent('focus-input');
     if (!this.props.isAllowAddNew) return null;
-    const { inputActive, inputHasClose } = this.state;
+    const { inputActive, inputHasClose, emojiPickerIsOpen, replyObject } =
+      this.state;
     return (
-      <form className={`sc-user-input ${(inputActive ? 'active' : '')}`}>
-        <div
-          role="button"
-          tabIndex="0"
-          onFocus={() => { this.setState({ inputActive: true }); }}
-          onBlur={() => { this.setState({ inputActive: false }); }}
-          ref={(e) => {
-            UserInputHelper.setUserInput(e);
-            this.userInput = e;
-          }}
-          onKeyDown={this.handleKeyDown.bind(this)}
-          onKeyUp={this.handleKeyUp.bind(this)}
-          contentEditable={!this.props.loading}
-          placeholder="Hãy viết gì đó ..."
-          className="sc-user-input--text"
-        >
-        </div>
-        <div className="sc-user-input--buttons">
-          {inputHasClose ?
-            <div onClick={() => this.onClickCloseEdit()} className="sc-user-input--button">
-              <img src={CloseIcon} alt='close-icon' className="sc-user-input--closeIcon" />
+      <form className={`sc-user-input ${inputActive ? 'active' : ''}`}>
+        <div className="sc-user-input--mainWrap">
+          <div
+            role="input"
+            tabIndex="0"
+            multiple
+            onFocus={() => {
+              this.setState({ inputActive: true });
+              document.dispatchEvent(focusInputEvent);
+            }}
+            onBlur={() => {
+              this.setState({ inputActive: false });
+            }}
+            ref={(e) => {
+              UserInputHelper.setUserInput(e);
+              this.userInput = e;
+            }}
+            onKeyDown={this.handleKeyDown.bind(this)}
+            onKeyUp={this.handleKeyUp.bind(this)}
+            contentEditable={!this.props.loading}
+            placeholder="Hãy viết gì đó ..."
+            className="sc-user-input--text"
+          />
+          <div className="sc-user-input--buttons">
+            {inputHasClose ? (
+              <div
+                onClick={() => this.onClickCloseEdit()}
+                className="sc-user-input--button"
+              >
+                <img
+                  src={CloseIcon}
+                  alt="close-icon"
+                  className="sc-user-input--closeIcon"
+                />
+              </div>
+            ) : null}
+            <div style={{ marginRight: 10 }} className="sc-user-input--button">
+              <EmojiIcon
+                onClick={this.toggleEmojiPicker}
+                isActive={emojiPickerIsOpen}
+                tooltip={this._renderEmojiPopup()}
+              />
             </div>
-            : null}
-          {this._renderSendOrFileIcon()}
+            {this._renderSendOrFileIcon()}
+          </div>
         </div>
       </form>
     );
@@ -139,7 +220,7 @@ class UserInput extends Component {
 UserInput.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onFilesSelected: PropTypes.func.isRequired,
-  showEmoji: PropTypes.bool
+  showEmoji: PropTypes.bool,
 };
 
 export default UserInput;

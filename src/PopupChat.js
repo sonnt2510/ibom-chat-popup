@@ -9,12 +9,13 @@ import {
   requestSendMessage,
   requestDeleteMessage,
   setTypeOfAction,
-  requestGetSetting
+  requestGetSetting,
 } from './services/request';
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
 import incomingMessageSound from './assets/sounds/notification.mp3';
 import ChatWindow from './components/ChatWindow';
+import { MessageEvent } from './utils/Constants';
 
 class PopupChat extends Component {
   constructor() {
@@ -28,6 +29,7 @@ class PopupChat extends Component {
       isAllowAddNew: false,
       isAllowAttach: false,
       url: '',
+      canLoadMore: true,
     };
   }
 
@@ -37,18 +39,23 @@ class PopupChat extends Component {
       this._getListMessage();
       this._getInfo();
       document.addEventListener(
-        'new-messages',
+        MessageEvent.NEW_MESSAGES,
         (e) => this.handleNewMessageListener(e),
         false
       );
       document.addEventListener(
-        'edit-message',
+        MessageEvent.EDIT_MESSAGE,
         (e) => this.handleEditDeleteMessageListener(e, 'edit'),
         false
       );
       document.addEventListener(
-        'delete-message',
+        MessageEvent.DELETE_MESSAGE,
         (e) => this.handleEditDeleteMessageListener(e, 'delete'),
+        false
+      );
+      document.addEventListener(
+        MessageEvent.REACT_MESSAGE,
+        (e) => this.handleReactMessageListener(e, 'react'),
         false
       );
     } else {
@@ -61,6 +68,32 @@ class PopupChat extends Component {
     setTimeout(() => {
       this.setupData();
     }, 300);
+  }
+
+  handleReactMessageListener(e) {
+    const message = e.reactMessage;
+    const { messageList } = this.state;
+    const index = messageList.findIndex((e) => e.id == message.comment_id);
+    if (index > 0) {
+      const reactionMessage = messageList[index].reaction;
+      const reactObj = {
+        avatar: message.userAvatar,
+        react: message.reaction,
+        user_sent_id: message.userId,
+        user_sent_name: message.userName,
+      };
+      if (reactionMessage && reactionMessage.length) {
+        const findUserIndex = reactionMessage.findIndex(e => e.user_sent_id == message.userId);
+        if (findUserIndex >= 0) {
+          messageList[index].reaction[findUserIndex].react = message.reaction;
+        } else {
+          messageList[index].reaction.push(reactObj);
+        }
+      } else {
+        messageList[index].reaction = [reactObj];
+      }
+      this.setState({ messageList });
+    }
   }
 
   handleNewMessageListener(e) {
@@ -149,8 +182,20 @@ class PopupChat extends Component {
     }
   }
 
-  _mapIdAfterResponse = async (message, index, propsId, files, allowEdit, allowDel) => {
-    const response = await requestSendMessage(message, files, allowEdit, allowDel);
+  _mapIdAfterResponse = async (
+    message,
+    index,
+    propsId,
+    files,
+    allowEdit,
+    allowDel
+  ) => {
+    const response = await requestSendMessage(
+      message,
+      files,
+      allowEdit,
+      allowDel
+    );
     if (response.isSuccess) {
       const id = response.commentId || propsId;
       const listAssign = Object.assign([], this.state.messageList);
@@ -196,11 +241,11 @@ class PopupChat extends Component {
       // Use the 'out of viewport hidden text area' trick
       const textArea = document.createElement('textarea');
       textArea.value = textToCopy;
-            
+
       // Move textarea out of the viewport so it's not visible
       textArea.style.position = 'absolute';
       textArea.style.left = '-999999px';
-            
+
       document.body.prepend(textArea);
       textArea.select();
 
@@ -221,12 +266,21 @@ class PopupChat extends Component {
       setTypeOfAction('edit');
       UserInputHelper.setText(message.data.text);
       setMessageId(message.id);
-      const editMessage = new CustomEvent('edit-my-message');
+      const editMessage = new CustomEvent(MessageEvent.EDIT_MY_MESSAGE);
       document.dispatchEvent(editMessage);
     } else if (type === 'delete') {
       setTypeOfAction('delete');
       requestDeleteMessage(message.id);
       this._handleDeteleMessage(message.id);
+    } else if (type === 'reply') {
+      setTypeOfAction('reply');
+      const replyEvent = new CustomEvent(MessageEvent.REPLY_MESSAGE);
+      const replyObject = {
+        userName: message.author == 'me' ? '' : message.data.name,
+        text: message.data.text
+      };
+      replyEvent.replyObject = replyObject;
+      document.dispatchEvent(replyEvent);
     }
   };
 
@@ -238,9 +292,10 @@ class PopupChat extends Component {
   };
 
   onLoadMore = async () => {
+    const { messageList, canLoadMore } = this.state;
+    if (!canLoadMore) return;
     setTypeOfAction('loadMore');
     this.setState({ isLoadMore: true });
-    const { messageList } = this.state;
     const lastId = messageList[0].id;
     const response = await requestGetListMessage(lastId);
     const responseList = response ? response.list : [];
@@ -249,9 +304,13 @@ class PopupChat extends Component {
       for (const i in newList) {
         newList[i].index = Number(i) + 1;
       }
-      this.setState({ isLoadMore: false, messageList: newList });
+      this.setState({
+        isLoadMore: false,
+        messageList: newList,
+        canLoadMore: true,
+      });
     } else {
-      this.setState({ isLoadMore: false });
+      this.setState({ isLoadMore: false, canLoadMore: false });
     }
   };
 
@@ -305,7 +364,7 @@ class PopupChat extends Component {
           profile={{
             roomName,
             url,
-            isDetail: this.props.isDetail
+            isDetail: this.props.isDetail,
           }}
           onMessageWasSent={this._onMessageWasSent.bind(this)}
           onFilesSelected={this._onFilesSelected.bind(this)}

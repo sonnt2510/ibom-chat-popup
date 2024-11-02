@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Message from './Messages';
 import loadingGif from './../assets/loading.gif';
-import icDownload from './../assets/icon_download.png';
 import isTypingGif from './../assets/isTyping.gif';
 import { getTypeOfAction } from '../services/request';
 
@@ -52,13 +51,23 @@ class MessageList extends Component {
     this.setState({ listMessage });
   };
 
+  handleScroll = (e) => {
+    if (e.currentTarget.scrollTop === 0) {
+      this.props.onLoadMore();
+    }
+  };
+
   render() {
-    const { loading, optionClick, onLoadMore, isLoadMore } = this.props;
+    const { loading, optionClick, isLoadMore } = this.props;
     const { isTyping, userTyping, listMessage } = this.state;
     const length = listMessage.length;
 
     return (
-      <div className="sc-message-list" ref={(el) => (this.scrollList = el)}>
+      <div
+        onScroll={this.handleScroll}
+        className="sc-message-list"
+        ref={(el) => (this.scrollList = el)}
+      >
         {isLoadMore ? (
           <div style={{ display: 'flex', marginBottom: 20 }}>
             <img
@@ -78,16 +87,6 @@ class MessageList extends Component {
           </div>
         ) : length > 0 ? (
           <div>
-            {!isLoadMore ? (
-              <p onClick={onLoadMore} className="sc-message-loadmore-text">
-                <img
-                  alt="download"
-                  src={icDownload}
-                  className="sc-message-loadmore-icon"
-                />
-                Tải thêm tin nhắn
-              </p>
-            ) : null}
             {listMessage.map((message, i) => {
               return (
                 <Message

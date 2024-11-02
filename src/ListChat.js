@@ -11,8 +11,12 @@ import loadingGif from './assets/loading.gif';
 import filterIcon from './assets/filter.png';
 import _debounce from 'lodash/debounce';
 import FilterOptions from './FilterOptions';
+import EmojiConvertor from 'emoji-js';
+import incomingMessageSound from './assets/sounds/notification.mp3';
+import { MessageEvent } from './utils/Constants';
 
 class ListChat extends Component {
+  emoji = new EmojiConvertor();
   constructor() {
     super();
     this.state = {
@@ -25,6 +29,8 @@ class ListChat extends Component {
       searchValue: '',
       displayFilterOption: false,
       displayFilterList: false,
+      canLoadMore: true,
+      page: 1,
     };
   }
 
@@ -32,17 +38,17 @@ class ListChat extends Component {
     this._getListMessage('');
     ChatHubHelper.startConnection(this.props.userId);
     document.addEventListener(
-      'new-messages',
+      MessageEvent.NEW_MESSAGES,
       (e) => this.handleMessageListener(e, 'add'),
       false
     );
     document.addEventListener(
-      'edit-message',
+      MessageEvent.EDIT_MESSAGE,
       (e) => this.handleMessageListener(e, 'edit'),
       false
     );
     document.addEventListener(
-      'delete-message',
+      MessageEvent.DELETE_MESSAGE,
       (e) => this.handleMessageListener(e, 'delete'),
       false
     );
@@ -54,7 +60,22 @@ class ListChat extends Component {
     }, 100);
   }
 
+  handleSound = () => {
+    var audio = new Audio(incomingMessageSound);
+    var resp = audio.play();
+    if (resp !== undefined) {
+      resp
+        .then((_) => {
+          audio.play();
+        })
+        .catch((error) => {
+          console.log('error', error);
+        });
+    }
+  }
+
   handleMessageListener(e, type) {
+    this.handleSound()
     let spliceItem = {};
     let listMessage = [];
     const newMessage = e.newMessage;
@@ -120,10 +141,10 @@ class ListChat extends Component {
     }
   }
 
-  onClickItem = (e, isRead) => {
+  onClickItem = (e, isRead, commentId) => {
     window.parent.postMessage(e, '*');
     if (isRead == 0) {
-      requestSendIsReadComment(e.object_id, e.object_instance_id);
+      requestSendIsReadComment(e.object_id, e.object_instance_id, commentId);
       const list = this.state.messageList;
       const index = list.findIndex(
         (v) =>
@@ -142,18 +163,23 @@ class ListChat extends Component {
     let comment = e.comment_content ?? '';
     let userName = e.user_created_name ?? '';
     let isRead = e.is_read;
+    let userAvatar = e.avatar;
+    let commentId = e.comment_id;
     if (e.listMessage && e.listMessage.length) {
       const lastMessage = e.listMessage[e.listMessage.length - 1];
       comment = lastMessage.comment_content;
       userName = lastMessage.user_created_name;
       isRead = 0;
+      userAvatar = lastMessage.avatar;
+      commentId = lastMessage.comment_id;
     }
 
+    // const content = `${userName}: ${this.emoji.replace_emoticons(comment)}`;
     const content = `${userName}: ${comment}`;
 
     return (
       <div
-        onClick={() => this.onClickItem(e, isRead)}
+        onClick={() => this.onClickItem(e, isRead, commentId)}
         className="list-chat-item-container"
         key={i}
       >
@@ -162,7 +188,7 @@ class ListChat extends Component {
           <div style={{ width: 40 }}>
             <img
               src={
-                e.avatar ? e.avatar : 'https://pro.ibom.vn/images/nophoto.jpg'
+                userAvatar ? userAvatar : 'https://pro.ibom.vn/images/nophoto.jpg'
               }
               className="list-chat-item-avatar"
             />
@@ -200,8 +226,38 @@ class ListChat extends Component {
     this._getListMessage(e);
   }, 1000);
 
+  onLoadMore = async () => {
+    const { messageList, searchValue, page, canLoadMore } = this.state;
+    if (!canLoadMore) return;
+    this.setState({ isLoadMore: true });
+    const response = await requestGetListGroupChat(searchValue, page + 1);
+    const responseList = response ?? [];
+    if (responseList && responseList.length > 0) {
+      const newList = [...messageList, ...responseList];
+      for (const i in newList) {
+        newList[i].index = Number(i) + 1;
+      }
+      this.setState({
+        isLoadMore: false,
+        messageList: newList,
+        canLoadMore: true,
+        page: page + 1,
+      });
+    } else {
+      this.setState({ isLoadMore: false, canLoadMore: false });
+    }
+  };
+
+  handleScroll = (e) => {
+    const bottom =
+      e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
+    if (bottom && !this.state.loading && !this.state.isLoadMore) {
+      this.onLoadMore();
+    }
+  };
+
   render() {
-    const { messageList, loading, displayFilterOption } = this.state;
+    const { messageList, loading, displayFilterOption, isLoadMore } = this.state;
     if (displayFilterOption)
       return (
         <FilterOptions
@@ -209,7 +265,7 @@ class ListChat extends Component {
         />
       );
     return (
-      <div className="list-chat-container">
+      <div onScroll={this.handleScroll} className="list-chat-container">
         <div className="list-chat-header">
           <div className="list-chat-input-container">
             <img
@@ -261,6 +317,15 @@ class ListChat extends Component {
             <span style={{ textAlign: 'center' }}>Không có dữ liệu</span>
           </div>
         )}
+        {isLoadMore ? (
+          <div style={{ display: 'flex', marginBottom: 20 }}>
+            <img
+              className="sc-message-loading-list"
+              alt="loading"
+              src={loadingGif}
+            />
+          </div>
+        ) : null}
       </div>
     );
   }

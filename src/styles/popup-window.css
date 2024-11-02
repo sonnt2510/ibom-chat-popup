@@ -1,6 +1,6 @@
 .sc-popup-window {
   position: relative;
-  width: 150px;
+  width: 120px;
 }
 
 .sc-popup-window--cointainer {
@@ -63,7 +63,8 @@
 .popup-content {
   box-shadow: none !important;
   border-radius: 5px;
-  cursor: auto;
+  cursor: pointer;
   padding-left: 0px !important;
   padding-right: 0px !important;
+  width: 180px !important;
 }

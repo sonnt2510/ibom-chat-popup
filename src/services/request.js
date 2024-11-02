@@ -2,6 +2,7 @@ import { doPostRequest } from './api';
 import imageExtensions from '../image-extensions.json';
 
 import { ChatHelper } from '../helper/chatHelper';
+import moment from 'moment';
 
 let objInstanceId = null;
 let objId = null;
@@ -21,9 +22,8 @@ export const setPayloadDefault = (instanceId, oId, user, username, apptype) => {
   appType = apptype;
 };
 
-export const requestGetListGroupChat = async (keySearch) => {
-  const page = 1;
-  const limit = 50;
+export const requestGetListGroupChat = async (keySearch, page = 1) => {
+  const limit = 10;
   let formdata = new FormData();
   formdata.append('page', page);
   formdata.append('limit', limit);
@@ -144,7 +144,10 @@ export const requestGetListMessage = async (lastId) => {
         text_align,
         allow_del,
         allow_edit,
+        reaction,
+        created_by
       } = listMessageResponse[i];
+      const convertDate = moment(created_date_view, 'DD/MM/YYYY hh:mmA').format('DD/MM/YYYY hh:mmA');
       let objMessage = {
         index,
         id: comment_id,
@@ -152,11 +155,13 @@ export const requestGetListMessage = async (lastId) => {
         type: 'text',
         isAllowDelete: allow_del === 1,
         isAllowEdit: allow_edit === 1,
+        reaction,
         data: {
           name: user_created_name,
           text: comment_content,
-          date: created_date_view,
+          date: convertDate,
           avatar,
+          userId: created_by
         },
       };
 
@@ -197,11 +202,12 @@ export const requestGetListMessage = async (lastId) => {
   };
 };
 
-export const requestSendIsReadComment = async (objId, objInstanceId) => {
+export const requestSendIsReadComment = async (objId, objInstanceId, commentId) => {
   let formdata = new FormData();
   formdata.append('object_instance_id', objInstanceId);
   formdata.append('object_id', objId);
   formdata.append('app_type', appType);
+  formdata.append('comment_id', commentId);
   await doPostRequest('comment/read.do', formdata);
   return true;
 };
@@ -258,6 +264,24 @@ export const requestDeleteMessage = (id) => {
   doPostRequest('common/comment.do', formdata);
 };
 
+export const requestReactMessage = (id, react, eventType, user) => {
+  const payloadEvent = getTypingPayload();
+  payloadEvent.comment_id = id;
+  payloadEvent.reaction = react;
+  payloadEvent.type = eventType;
+  payloadEvent.userName = user.name;
+  payloadEvent.userAvatar = user.avatar;
+  payloadEvent.userId = user.userId;
+  ChatHelper.sendReactMessageEvent(payloadEvent);
+  let formdata = new FormData();
+  formdata.append('react', react);
+  formdata.append('object_instance_id', objInstanceId);
+  formdata.append('object_id', objId);
+  formdata.append('comment_id', id);
+  formdata.append('app_type', appType);
+  doPostRequest('comment/reaction.do', formdata);
+};
+
 export const setMessageId = (id) => {
   messageId = id;
 };
@@ -300,4 +324,8 @@ export const getObjInstanceId = () => {
 
 export const getCurrentUserId = () => {
   return userId;
+};
+
+export const getCurrentUserName = () => {
+  return userName;
 };

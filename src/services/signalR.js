@@ -1,18 +1,25 @@
-import * as signalR from '@microsoft/signalr';
-import { MessageHelper } from '../helper/messageHelper';
-import { getCurrentUserId, getObjId, getObjInstanceId, getSessionId, getUserIds } from './request';
+import * as signalR from "@microsoft/signalr";
+import { MessageHelper } from "../helper/messageHelper";
+import {
+  getCurrentUserId,
+  getObjId,
+  getObjInstanceId,
+  getSessionId,
+} from "./request";
+import { MessageEvent } from "../utils/Constants";
 
-let _chathubURI = '';
+let _chathubURI = "";
 let connection = null;
-let _typingState = 'ended';
-const typingEvent = new CustomEvent('typing');
-const newMessageEvent = new CustomEvent('new-messages');
-const editMessageEvent = new CustomEvent('edit-message');
-const deleteMessageEvent = new CustomEvent('delete-message');
+let _typingState = "ended";
+const typingEvent = new CustomEvent("typing");
+const newMessageEvent = new CustomEvent(MessageEvent.NEW_MESSAGES);
+const editMessageEvent = new CustomEvent(MessageEvent.EDIT_MESSAGE);
+const deleteMessageEvent = new CustomEvent(MessageEvent.DELETE_MESSAGE);
+const reactMessageEvent = new CustomEvent(MessageEvent.REACT_MESSAGE);
 
 export class ChatHubHelper {
   static _isValidMessage = (data) => {
-    console.log('new event', data);
+    console.log("new event", data);
     const objId = getObjId();
     const objInstanceId = getObjInstanceId();
     const isFromList = !objId && !objInstanceId;
@@ -24,7 +31,7 @@ export class ChatHubHelper {
 
     const isSentByThisDevice = data.sentDeviceUID === sessionId;
     switch (event) {
-    case 'new-messages': {
+    case MessageEvent.NEW_MESSAGES: {
       const message = data.payload;
       let isValidMessagePayload =
           message &&
@@ -38,7 +45,7 @@ export class ChatHubHelper {
       }
       return isValidMessagePayload && !isSentByThisDevice;
     }
-    case 'user-typing': {
+    case MessageEvent.USER_TYPING: {
       const typingData = data.payload;
       return (
         typingData &&
@@ -50,14 +57,20 @@ export class ChatHubHelper {
       );
     }
 
-    case 'edit-message': {
+    case MessageEvent.EDIT_MESSAGE: {
       const editEventData = data.payload;
       return editEventData && editEventData.comment_id && !isSentByThisDevice;
     }
-    case 'delete-message': {
+    case MessageEvent.DELETE_MESSAGE: {
       const deleteEventData = data.payload;
       return (
         deleteEventData && deleteEventData.comment_id && !isSentByThisDevice
+      );
+    }
+    case MessageEvent.REACT_MESSAGE: {
+      const reactEventData = data.payload;
+      return (
+        reactEventData && reactEventData.comment_id
       );
     }
     }
@@ -73,7 +86,7 @@ export class ChatHubHelper {
     if (ChatHubHelper._isValidMessage(data)) {
       const event = data.event;
       switch (event) {
-      case 'new-messages': {
+      case MessageEvent.NEW_MESSAGES: {
         const messages = MessageHelper.convertMessageResponseToChatMessage(
           data.payload,
           userId
@@ -83,7 +96,7 @@ export class ChatHubHelper {
         break;
       }
 
-      case 'user-typing': {
+      case MessageEvent.USER_TYPING: {
         const typingData = data.payload;
         typingEvent.typingDetail = {
           typingState: typingData.typingState,
@@ -92,15 +105,22 @@ export class ChatHubHelper {
         document.dispatchEvent(typingEvent);
         break;
       }
-      case 'edit-message': {
+
+      case MessageEvent.EDIT_MESSAGE: {
         editMessageEvent.newMessage = data.payload;
         document.dispatchEvent(editMessageEvent);
         break;
       }
 
-      case 'delete-message': {
+      case MessageEvent.DELETE_MESSAGE: {
         deleteMessageEvent.newMessage = data.payload;
         document.dispatchEvent(deleteMessageEvent);
+        break;
+      }
+
+      case MessageEvent.REACT_MESSAGE: {
+        reactMessageEvent.reactMessage = data.payload;
+        document.dispatchEvent(reactMessageEvent);
         break;
       }
       }
@@ -118,37 +138,37 @@ export class ChatHubHelper {
     connection
       .start()
       .then(() => {
-        console.log('SignalR connected');
+        console.log("SignalR connected");
       })
       .catch((error) => {
-        console.log('Connect to signalr failed: ', error);
+        console.log("Connect to signalr failed: ", error);
       });
 
     connection.onclose((error) => {
       if (error) {
-        console.error('SignalR close with error: ', error);
+        console.error("SignalR close with error: ", error);
       } else {
-        console.log('SignalR closed');
+        console.log("SignalR closed");
       }
     });
 
     connection.onreconnecting((error) => {
       if (error) {
-        console.error('SignalR is reconnecting with error: ', error);
+        console.error("SignalR is reconnecting with error: ", error);
       } else {
-        console.log('SignalR is reconnecting');
+        console.log("SignalR is reconnecting");
       }
     });
 
     connection.onreconnected((error) => {
       if (error) {
-        console.error('SignalR is reconnected with error: ', error);
+        console.error("SignalR is reconnected with error: ", error);
       } else {
-        console.log('SignalR is reconncted');
+        console.log("SignalR is reconncted");
       }
     });
 
-    connection.on('ReceiveMessage', (userId, data) =>
+    connection.on("ReceiveMessage", (userId, data) =>
       ChatHubHelper._onReceivedMessage(userId, data)
     );
   };
@@ -156,15 +176,15 @@ export class ChatHubHelper {
   static sendMessageToUsers = (userIds, payload) => {
     const connectionHub = ChatHubHelper.getConnectionHub();
     connectionHub
-      .invoke('SendMessageToUsers', userIds, JSON.stringify(payload))
+      .invoke("SendMessageToUsers", userIds, JSON.stringify(payload))
       .then(() => {})
       .catch((error) => {
-        console.error('Invoke send messages error: ', error);
+        console.error("Invoke send messages error: ", error);
       });
   };
 
   static stopConnection = () => {
-    connection.off('ReceiveMessage');
+    connection.off("ReceiveMessage");
     connection.stop();
   };
 

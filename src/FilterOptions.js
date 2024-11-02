@@ -82,8 +82,12 @@ class FilterOptions extends Component {
           }}
           trigger={
             <div className="filter-option-select-input">
-              <span>{selectedOptionLabel ? selectedOptionLabel : 'Chọn'}</span>
-              <img alt="chevron" src={iconDown} />
+              <span className="filter-option-select-item">{selectedOptionLabel ? selectedOptionLabel : 'Chọn'}</span>
+              <img
+                className="filter-option-select-input-icon"
+                alt="chevron"
+                src={iconDown}
+              />
             </div>
           }
         >
@@ -93,12 +97,18 @@ class FilterOptions extends Component {
               className="filter-option-item"
               key={i}
             >
-              <span>{e.text}</span>
+              <span className="filter-option-item-text">{e.text}</span>
             </div>
           ))}
         </Popup>
       </div>
     );
+  };
+
+  onHandleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      this.submitFilter();
+    }
   };
 
   showInput = () => {
@@ -107,6 +117,8 @@ class FilterOptions extends Component {
       <div className="filter-input-container">
         <p className="filter-option-label">{inputLabel}</p>
         <input
+          className="filter-input"
+          onKeyDown={this.onHandleKeyDown}
           value={this.state.searchValue}
           onChange={this.onHandleChangeSearch}
         />
@@ -208,7 +220,11 @@ class FilterOptions extends Component {
             onClick={() => this.closeFilter()}
             className="filter-screen-back"
           >
-            <img alt="back" src={showFilterList ? arrowLeftIcon : closeIcon} />
+            <img
+              className="filter-screen-back-icon"
+              alt="back"
+              src={showFilterList ? arrowLeftIcon : closeIcon}
+            />
           </div>
         </div>
         {showFilterList ? (

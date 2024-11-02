@@ -3,23 +3,60 @@ import TextMessage from './TextMessage';
 import FileMessage from './FileMessage';
 import waitingIcon from '../../assets/waiting.png';
 import copyIcon from '../../assets/copy-icon.png';
+import replyIcon from '../../assets/reply-icon.png';
 import editIcon from '../../assets/edit-icon.png';
 import trashIcon from '../../assets/trash-icon.png';
 import verticalDot from '../../assets/vertical_dot.png';
+import likeIcon from '../../assets/icon_like.webp';
 import Popup from 'reactjs-popup';
+import ReactTooltip from 'react-tooltip';
+import {
+  getCurrentUserId,
+  getCurrentUserName,
+  requestReactMessage,
+} from '../../services/request';
+import { ReactEmoji, ReactValue } from '../../utils/Constants';
+import { mapReactWithReactId } from '../../utils/Reaction';
 
 class Message extends Component {
+  constructor() {
+    super();
+    this.state = {
+      hoverMessageIndex: null,
+      reactionData: [
+        { reaction: ReactEmoji.LIKE, reactionId: ReactValue.LIKE },
+        { reaction: ReactEmoji.HEART, reactionId: ReactValue.HEART },
+        { reaction: ReactEmoji.LAUGH, reactionId: ReactValue.LAUGH },
+        { reaction: ReactEmoji.SUPRISED, reactionId: ReactValue.SUPRISED },
+        { reaction: ReactEmoji.CRY, reactionId: ReactValue.CRY },
+        { reaction: ReactEmoji.ANGRY, reactionId: ReactValue.ANGRY },
+      ],
+      onSelectReaction: false,
+    };
+  }
   _renderMessageOfType(type) {
     switch (type) {
-    case 'text':
-      return <TextMessage {...this.props.message} />;
-    case 'file':
-      return <FileMessage {...this.props.message} />;
-    default:
-      console.error(
-        `Attempting to load message with unsupported file type '${type}'`
-      );
+      case 'text':
+        return <TextMessage {...this.props.message} />;
+      case 'file':
+        return <FileMessage {...this.props.message} />;
+      default:
+        console.error(
+          `Attempting to load message with unsupported file type '${type}'`
+        );
     }
+  }
+
+  componentDidMount() {
+    document.addEventListener(
+      'focus-input',
+      () => {
+        if (this.popup) {
+          this.popup.closePopup();
+        }
+      },
+      false
+    );
   }
 
   componentDidUpdate() {
@@ -37,10 +74,9 @@ class Message extends Component {
     this.props.optionClick(this.props.message, type);
   };
 
-  renderOption = () => {
+  renderOption = (isMe) => {
     const { type, id, isAllowDelete, isAllowEdit } = this.props.message;
-    if (!isAllowDelete && !isAllowEdit && (type === 'image' || type === 'file'))
-      return null;
+
     return id ? (
       <div
         style={{ cursor: 'pointer' }}
@@ -59,9 +95,23 @@ class Message extends Component {
               src={verticalDot}
             />
           }
-          position="left"
+          position={isMe ? 'left' : 'top'}
         >
           <div style={{ paddingLeft: 5, paddingRight: 5 }}>
+            <div
+              style={{
+                borderBottomWidth: type !== 'text' ? 0 : 1,
+              }}
+              onClick={() => this.onOptionClick('reply')}
+              className="sc-message-option-wrap"
+            >
+              <img
+                src={replyIcon}
+                className="sc-message-option-icon"
+                alt="reply"
+              />
+              <span>Trả lời</span>
+            </div>
             {type === 'text' ? (
               <div>
                 <div
@@ -78,7 +128,7 @@ class Message extends Component {
                   />
                   <span>Copy tin nhắn</span>
                 </div>
-                {isAllowEdit ? (
+                {isAllowEdit && isMe ? (
                   <div
                     style={{ borderBottomWidth: !isAllowDelete ? 0 : 1 }}
                     onClick={() => this.onOptionClick('edit')}
@@ -94,7 +144,7 @@ class Message extends Component {
                 ) : null}
               </div>
             ) : null}
-            {isAllowDelete ? (
+            {isAllowDelete && isMe ? (
               <div
                 onClick={() => this.onOptionClick('delete')}
                 style={{ border: 'none' }}
@@ -122,8 +172,127 @@ class Message extends Component {
     );
   };
 
+  onSelectReaction = (value) => {
+    const { id } = this.props.message;
+    const userId = getCurrentUserId();
+    const userName = getCurrentUserName();
+    const user = {
+      avatar: '',
+      name: userName,
+      userId,
+    };
+    requestReactMessage(id, value, 'add', user);
+    this.setState({ onSelectReaction: true }, () => {
+      this.setState({ onSelectReaction: false });
+    });
+  };
+
+  renderToolTip = (isDisplay) => {
+    let lastReaction = '';
+    const userId = getCurrentUserId();
+    const { reaction } = this.props.message;
+    const { reactionData, onSelectReaction } = this.state;
+    if (!isDisplay) return;
+    if (reaction && reaction.length > 0) {
+      const find = reaction.find((e) => e.user_sent_id == userId);
+      if (find) {
+        lastReaction = mapReactWithReactId(find.react);
+      }
+    }
+    return (
+      <div style={{ display: 'flex' }}>
+        <div
+          data-tip
+          data-for="tooltipData"
+          className="sc-message--tooltipWrap"
+        >
+          {lastReaction ? (
+            <span style={{ fontSize: 13 }}>{lastReaction}</span>
+          ) : (
+            <img src={likeIcon} height={16} width={16} />
+          )}
+        </div>
+        {!onSelectReaction ? (
+          <ReactTooltip
+            arrowColor="transparent"
+            id="tooltipData"
+            delayHide={100}
+            className="sc-message--tooltipContainer"
+            effect="solid"
+          >
+            {reactionData.map((e) => (
+              <div
+                onClick={() => this.onSelectReaction(e.reactionId)}
+                key={e.reactionId}
+              >
+                {e.reaction}
+              </div>
+            ))}
+          </ReactTooltip>
+        ) : null}
+        {this.renderReaction(reaction)}
+      </div>
+    );
+  };
+
+  onHoverMessage = () => {
+    const { index } = this.props.message;
+    this.setState({ hoverMessageIndex: index });
+  };
+
+  outHoverMessage = () => {
+    this.setState({ hoverMessageIndex: null });
+  };
+
+  renderReaction = (reaction) => {
+    const userId = getCurrentUserId();
+    const { id } = this.props.message;
+    const length = reaction.length;
+    if (!reaction || length == 0) return;
+    const marginWidth = length * 5;
+    const marginLeft = 60 + length * marginWidth;
+    return (
+      <div style={{ display: 'flex' }}>
+        <div
+          data-tip
+          data-for={`reactionTooltipData${id}`}
+          style={{ marginLeft: -marginLeft }}
+          className="sc-message--messageReactionWrap"
+        >
+          {reaction.slice(0, 2).map((e) => {
+            return (
+              <span style={{ marginRight: 3 }} key={e.reactionId}>
+                {mapReactWithReactId(e.react)}
+              </span>
+            );
+          })}
+          <span style={{ fontWeight: '500', marginTop: 0 }}>
+            {reaction.length}
+          </span>
+          <ReactTooltip
+            arrowColor="transparent"
+            id={`reactionTooltipData${id}`}
+            className="sc-message--reactionTooltipContainer"
+            effect="solid"
+          >
+            {reaction.slice(0, 4).map((e, i) => (
+              <span key={i}>
+                {e.user_sent_id == userId ? 'Bạn' : e.user_sent_name}
+              </span>
+            ))}
+            {reaction.length >= 5 ? (
+              <span>... và {6 - reaction.length} người khác</span>
+            ) : null}
+          </ReactTooltip>
+        </div>
+      </div>
+    );
+  };
+
   render() {
-    const { data, author, type, showName, showDate } = this.props.message;
+    const { data, author, type, showName, showDate, index, reaction } =
+      this.props.message;
+    const { hoverMessageIndex } = this.state;
     const date = data.date.split(' ')[0];
     let contentClassList = [
       'sc-message--content',
@@ -133,7 +302,11 @@ class Message extends Component {
     return (
       <div>
         {showDate ? <p className="sc-message--date">{date}</p> : null}
-        <div className="sc-message">
+        <div
+          onMouseLeave={() => this.outHoverMessage()}
+          onMouseEnter={() => this.onHoverMessage()}
+          className="sc-message"
+        >
           <div className={contentClassList.join(' ')}>
             <div
               className="sc-message--avatar"
@@ -147,7 +320,10 @@ class Message extends Component {
               }}
             ></div>
             {this._renderMessageOfType(type)}
-            {author === 'me' ? this.renderOption() : null}
+            {this.renderOption(author === 'me', hoverMessageIndex === index)}
+            {this.renderToolTip(
+              hoverMessageIndex === index || (reaction && reaction.length > 0)
+            )}
           </div>
         </div>
       </div>
