@@ -24,7 +24,7 @@ export class MessageHelper {
         }
       };
 
-      if (fileList.length) {
+      if (fileList && fileList.length) {
         for (const i in fileList) {
           const fileMessage = objMessage;
           const { extension, file_path, file_name } = fileList[i];

@@ -5,12 +5,14 @@ import CloseIcon from '../assets/close-icon.png';
 import FileIcon from './icons/FileIcon';
 import { ChatHubHelper } from '../services/signalR';
 import UserInputHelper from '../helper/userInputHelper';
-import { setMessageId } from '../services/request';
+import { setMessageId, setReplyObject, setTypeOfAction } from '../services/request';
 import { ChatHelper } from '../helper/chatHelper';
 import EmojiIcon from './icons/EmojiIcon';
 import PopupWindow from './popups/PopupWindow';
 import EmojiPicker from './emoji/EmojiPicker';
 import { MessageEvent } from '../utils/Constants';
+import quoteIcon from '../assets/icon-quote.png';
+import { mapFileIcon } from '../utils/Message';
 
 class UserInput extends Component {
   constructor() {
@@ -34,7 +36,10 @@ class UserInput extends Component {
 
     document.addEventListener(
       MessageEvent.REPLY_MESSAGE,
-      (e) => this.setState({ replyObject: e.replyObject }),
+      (e) => {
+        this.setState({ replyObject: e.replyObject });
+        this.userInput.focus();
+      },
       false
     );
 
@@ -66,7 +71,8 @@ class UserInput extends Component {
   }
 
   _submitText(event) {
-    this.setState({ inputHasClose: false });
+    this.setState({ inputHasClose: false, replyObject: null });
+    setTypeOfAction('');
     event.preventDefault();
     const text = this.userInput.innerText;
     text.replace('<br>', '\r');
@@ -89,6 +95,7 @@ class UserInput extends Component {
   }
 
   _renderSendOrFileIcon() {
+    const {replyObject} = this.state;
     if (this.props.loading) {
       return null;
     }
@@ -99,7 +106,7 @@ class UserInput extends Component {
         </div>
       );
     }
-    return this.props.isAllowAttach ? (
+    return this.props.isAllowAttach && !replyObject ? (
       <div className="sc-user-input--button">
         <FileIcon onClick={this._showFilePicker.bind(this)} />
         <input
@@ -160,59 +167,132 @@ class UserInput extends Component {
     </PopupWindow>
   );
 
+  onCloseQuote = () => {
+    this.setState({ replyObject: null });
+    setTypeOfAction('');
+    setReplyObject(null);
+  };
+
+  renderReplySection = () => {
+    const { replyObject } = this.state;
+    if (!replyObject) return <div />;
+    const { data, author } = replyObject;
+
+    let renderMessage = (
+      <span className="sc-input--replyName">{data.text}</span>
+    );
+
+    if (data.type == 'image') {
+      renderMessage = <img src={data.url} className="sc-input--quoteImage" />;
+    }
+
+    if (data.type == 'file') {
+      renderMessage = (
+        <span
+          className="sc-input--replyName"
+          style={{
+            display: 'flex',
+          }}
+        >
+          <img
+            style={{ marginRight: 10 }}
+            alt="fileIcon"
+            src={mapFileIcon(data.fileName)}
+            height={15}
+            width={15}
+          />
+          {data.fileName}
+        </span>
+      );
+    }
+
+    return (
+      <div className="sc-user-input--replyContainer">
+        <div className="sc-user-input--replyWrap">
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span className="sc-input--replyName">
+              <img
+                className="sc-input--quoteIcon"
+                alt="quote-message"
+                src={quoteIcon}
+              />
+              Trả lời <b>{author === 'them' ? data.name : ''}</b>
+            </span>
+            <div
+              onClick={() => this.onCloseQuote()}
+              className="sc-input--quoteCloseButton"
+            >
+              <img
+                className="sc-input--closeQuoteIcon"
+                alt="quote-close"
+                src={CloseIcon}
+              />
+            </div>
+          </div>
+          <div className="sc-input--quoteResponseWrap">{renderMessage}</div>
+        </div>
+      </div>
+    );
+  };
+
   render() {
     const focusInputEvent = new CustomEvent('focus-input');
     if (!this.props.isAllowAddNew) return null;
-    const { inputActive, inputHasClose, emojiPickerIsOpen, replyObject } =
-      this.state;
+    const { inputActive, inputHasClose, emojiPickerIsOpen } = this.state;
     return (
-      <form className={`sc-user-input ${inputActive ? 'active' : ''}`}>
-        <div className="sc-user-input--mainWrap">
-          <div
-            role="input"
-            tabIndex="0"
-            multiple
-            onFocus={() => {
-              this.setState({ inputActive: true });
-              document.dispatchEvent(focusInputEvent);
-            }}
-            onBlur={() => {
-              this.setState({ inputActive: false });
-            }}
-            ref={(e) => {
-              UserInputHelper.setUserInput(e);
-              this.userInput = e;
-            }}
-            onKeyDown={this.handleKeyDown.bind(this)}
-            onKeyUp={this.handleKeyUp.bind(this)}
-            contentEditable={!this.props.loading}
-            placeholder="Hãy viết gì đó ..."
-            className="sc-user-input--text"
-          />
-          <div className="sc-user-input--buttons">
-            {inputHasClose ? (
+      <div>
+        {this.renderReplySection()}
+        <form className={`sc-user-input ${inputActive ? 'active' : ''}`}>
+          <div className="sc-user-input--mainWrap">
+            <div
+              role="input"
+              tabIndex="0"
+              multiple
+              onFocus={() => {
+                this.setState({ inputActive: true });
+                document.dispatchEvent(focusInputEvent);
+              }}
+              onBlur={() => {
+                this.setState({ inputActive: false });
+              }}
+              ref={(e) => {
+                UserInputHelper.setUserInput(e);
+                this.userInput = e;
+              }}
+              onKeyDown={this.handleKeyDown.bind(this)}
+              onKeyUp={this.handleKeyUp.bind(this)}
+              contentEditable={!this.props.loading}
+              placeholder="Hãy viết gì đó ..."
+              className="sc-user-input--text"
+            />
+            <div className="sc-user-input--buttons">
+              {inputHasClose ? (
+                <div
+                  onClick={() => this.onClickCloseEdit()}
+                  className="sc-user-input--button"
+                >
+                  <img
+                    src={CloseIcon}
+                    alt="close-icon"
+                    className="sc-user-input--closeIcon"
+                  />
+                </div>
+              ) : null}
               <div
-                onClick={() => this.onClickCloseEdit()}
+                style={{ marginRight: 10 }}
                 className="sc-user-input--button"
               >
-                <img
-                  src={CloseIcon}
-                  alt="close-icon"
-                  className="sc-user-input--closeIcon"
+                <EmojiIcon
+                  onClick={this.toggleEmojiPicker}
+                  isActive={emojiPickerIsOpen}
+                  tooltip={this._renderEmojiPopup()}
                 />
               </div>
-            ) : null}
-            <div style={{ marginRight: 10 }} className="sc-user-input--button">
-              <EmojiIcon
-                onClick={this.toggleEmojiPicker}
-                isActive={emojiPickerIsOpen}
-                tooltip={this._renderEmojiPopup()}
-              />
+              {this._renderSendOrFileIcon()}
             </div>
-            {this._renderSendOrFileIcon()}
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     );
   }
 }

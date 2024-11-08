@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './styles';
 import './styles/base.css';
 import {
+  getCurrentUserId,
   requestGetListGroupChat,
   requestSendIsReadComment,
 } from './services/request';
@@ -75,7 +76,8 @@ class ListChat extends Component {
   }
 
   handleMessageListener(e, type) {
-    this.handleSound()
+    window.parent.postMessage('NEW MESSAGE', '*');
+    this.handleSound();
     let spliceItem = {};
     let listMessage = [];
     const newMessage = e.newMessage;
@@ -159,12 +161,14 @@ class ListChat extends Component {
   };
 
   renderItem = (e, i) => {
+    const currentUserId = getCurrentUserId();
     const title = e.OBJECT_INSTANCE_NAME ?? '(trống)';
     let comment = e.comment_content ?? '';
     let userName = e.user_created_name ?? '';
     let isRead = e.is_read;
     let userAvatar = e.avatar;
     let commentId = e.comment_id;
+    let userId = e.created_by;
     if (e.listMessage && e.listMessage.length) {
       const lastMessage = e.listMessage[e.listMessage.length - 1];
       comment = lastMessage.comment_content;
@@ -172,6 +176,11 @@ class ListChat extends Component {
       isRead = 0;
       userAvatar = lastMessage.avatar;
       commentId = lastMessage.comment_id;
+      userId = lastMessage.created_by;
+    }
+
+    if (userId == currentUserId) {
+      isRead = 1;
     }
 
     // const content = `${userName}: ${this.emoji.replace_emoticons(comment)}`;

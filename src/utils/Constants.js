@@ -25,3 +25,11 @@ export const ReactEmoji = {
   CRY: '😢',
   ANGRY: '😡',
 };
+
+export const TypeOfAction = {
+  ADD: 'add',
+  LOAD_MORE: 'load_more',
+  EDIT: 'edit',
+  DELETE: 'delete',
+  REPLY: 'reply'
+};

@@ -151,3 +151,46 @@
   display: flex;
   width: 100%;
 }
+
+.sc-user-input--replyContainer {
+  padding: 10px;
+  background-color: #f4f7f9;
+}
+
+.sc-user-input--replyWrap {
+   border-left: 5px solid #4f72c2;
+   background-color: white;
+   padding: 10px;
+   border-radius: 4px;
+}
+
+.sc-input--replyName {
+  font-size: 14px;
+}
+
+.sc-input--quoteIcon {
+  height: 12px;
+  width: 12px;
+  margin-right: 8px;
+}
+
+.sc-input--quoteCloseButton {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.sc-input--closeQuoteIcon {
+  height: 12px;
+  width: 12px;
+  filter: brightness(0) saturate(100%)
+}
+
+.sc-input--quoteImage {
+  height: 120px;
+  width: 120px;
+  border-radius: 5px;
+  margin-top: 10px;
+}

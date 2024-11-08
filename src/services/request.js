@@ -1,8 +1,10 @@
 import { doPostRequest } from './api';
-import imageExtensions from '../image-extensions.json';
 
 import { ChatHelper } from '../helper/chatHelper';
-import moment from 'moment';
+import {
+  converObjectMessageFileData,
+  convertObjectMessageData,
+} from '../utils/Message';
 
 let objInstanceId = null;
 let objId = null;
@@ -13,17 +15,21 @@ let userList = [];
 let messageId = '';
 let typeOfAction = 'get';
 let sessionId = '';
+let replyObject = null;
 
 export const setPayloadDefault = (instanceId, oId, user, username, apptype) => {
-  objInstanceId = instanceId;
-  objId = oId;
+  objInstanceId = Number(instanceId);
+  objId = Number(oId);
   userId = user;
   userName = username;
   appType = apptype;
 };
 
-export const requestGetListGroupChat = async (keySearch, page = 1) => {
-  const limit = 10;
+export const requestGetListGroupChat = async (
+  keySearch,
+  page = 1,
+  limit = 10
+) => {
   let formdata = new FormData();
   formdata.append('page', page);
   formdata.append('limit', limit);
@@ -117,6 +123,20 @@ export const requestGetSetting = async () => {
   };
 };
 
+const convertMessageData = (data) => {
+  if (!data) return;
+  let objectMessage = {};
+  const { fileList } = data;
+  objectMessage = convertObjectMessageData(data);
+
+  if (fileList && fileList.length) {
+    for (const i in fileList) {
+      objectMessage = converObjectMessageFileData(data, fileList[i]);
+    }
+  }
+  return objectMessage;
+};
+
 export const requestGetListMessage = async (lastId) => {
   sessionId = Math.random()
     .toString(36)
@@ -134,58 +154,17 @@ export const requestGetListMessage = async (lastId) => {
   if (response.data.result === 'success') {
     const listMessageResponse = response.data.itemList.reverse();
     for (const i in listMessageResponse) {
-      const {
-        comment_content,
-        created_date_view,
-        avatar,
-        fileList,
-        user_created_name,
-        comment_id,
-        text_align,
-        allow_del,
-        allow_edit,
-        reaction,
-        created_by
-      } = listMessageResponse[i];
-      const convertDate = moment(created_date_view, 'DD/MM/YYYY hh:mmA').format('DD/MM/YYYY hh:mmA');
-      let objMessage = {
-        index,
-        id: comment_id,
-        author: text_align === 2 ? 'me' : 'them',
-        type: 'text',
-        isAllowDelete: allow_del === 1,
-        isAllowEdit: allow_edit === 1,
-        reaction,
-        data: {
-          name: user_created_name,
-          text: comment_content,
-          date: convertDate,
-          avatar,
-          userId: created_by
-        },
-      };
+      const { fileList, reply } = listMessageResponse[i];
+      let objMessage = convertMessageData(listMessageResponse[i]);
+      objMessage.index = index;
+      objMessage.reply = convertMessageData(reply);
+  
 
-      if (fileList.length) {
-        for (const i in fileList) {
-          const { extension, file_path, file_name } = fileList[i];
-          const type = imageExtensions.includes(extension.replace('.', ''))
-            ? 'image'
-            : 'file';
-          const fileMessage = {
-            index,
-            id: comment_id,
-            author: text_align === 2 ? 'me' : 'them',
-            type: 'file',
-            isAllowDelete: allow_del === 1,
-            data: {
-              name: user_created_name,
-              type,
-              url: file_path,
-              fileName: file_name,
-              date: created_date_view,
-              avatar,
-            },
-          };
+      if (fileList && fileList.length) {
+        for (const j in fileList) {
+          let fileMessage = converObjectMessageFileData(listMessageResponse[i], fileList[j]);
+          fileMessage.index = index;
+          fileMessage.reply = convertMessageData(reply);
           messageList.push(fileMessage);
           index++;
         }
@@ -202,7 +181,11 @@ export const requestGetListMessage = async (lastId) => {
   };
 };
 
-export const requestSendIsReadComment = async (objId, objInstanceId, commentId) => {
+export const requestSendIsReadComment = async (
+  objId,
+  objInstanceId,
+  commentId
+) => {
   let formdata = new FormData();
   formdata.append('object_instance_id', objInstanceId);
   formdata.append('object_id', objId);
@@ -220,6 +203,7 @@ export const requestSendMessage = async (
 ) => {
   const payloadEvent = getTypingPayload();
   let formdata = new FormData();
+  formdata.append('ref_id', replyObject ? replyObject.id : '');
   formdata.append('comment_id', messageId);
   formdata.append('object_instance_id', objInstanceId);
   formdata.append('object_id', objId);
@@ -228,6 +212,7 @@ export const requestSendMessage = async (
   formdata.append('FileUpload', files);
   formdata.append('app_type', appType);
   const response = await doPostRequest('common/comment.do', formdata);
+  replyObject = null;
   if (messageId) {
     payloadEvent.content = comment;
     payloadEvent.messageId = messageId;
@@ -264,14 +249,34 @@ export const requestDeleteMessage = (id) => {
   doPostRequest('common/comment.do', formdata);
 };
 
+// reactionData: {
+//   messageId: number | string;
+//   reaction: string;
+//   objectId: number;
+//   objectInstanceId: number;
+// };
+// user: UserModel;
+// actType: 'add' | 'remove';
+
+// id: number;
+//     email?: string;
+//     fullname?: string;
+//     avatar?: string;
+
 export const requestReactMessage = (id, react, eventType, user) => {
   const payloadEvent = getTypingPayload();
-  payloadEvent.comment_id = id;
-  payloadEvent.reaction = react;
-  payloadEvent.type = eventType;
-  payloadEvent.userName = user.name;
-  payloadEvent.userAvatar = user.avatar;
-  payloadEvent.userId = user.userId;
+  payloadEvent.reactionData = {
+    messageId: id,
+    reaction: react,
+    objectId: objId,
+    objInstanceId: objInstanceId 
+  },
+  payloadEvent.actType = eventType;
+  payloadEvent.user = {
+    id: user.userId,
+    fullname: user.name,
+    avatar: user.avatar
+  };
   ChatHelper.sendReactMessageEvent(payloadEvent);
   let formdata = new FormData();
   formdata.append('react', react);
@@ -279,11 +284,20 @@ export const requestReactMessage = (id, react, eventType, user) => {
   formdata.append('object_id', objId);
   formdata.append('comment_id', id);
   formdata.append('app_type', appType);
+  formdata.append('act_type', eventType === 'add' ? 1 : -1);
   doPostRequest('comment/reaction.do', formdata);
 };
 
 export const setMessageId = (id) => {
   messageId = id;
+};
+
+export const setReplyObject = (reply) => {
+  replyObject = reply;
+};
+
+export const getReplyObject = () => {
+  return replyObject;
 };
 
 export const getMessageId = () => {

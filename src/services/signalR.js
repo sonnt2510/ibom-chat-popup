@@ -70,7 +70,8 @@ export class ChatHubHelper {
     case MessageEvent.REACT_MESSAGE: {
       const reactEventData = data.payload;
       return (
-        reactEventData && reactEventData.comment_id
+        reactEventData && reactEventData.object_id == objId &&
+        reactEventData.object_instance_id == objInstanceId
       );
     }
     }

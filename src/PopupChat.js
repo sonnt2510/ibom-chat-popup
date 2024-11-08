@@ -10,12 +10,14 @@ import {
   requestDeleteMessage,
   setTypeOfAction,
   requestGetSetting,
+  setReplyObject,
+  getReplyObject,
 } from './services/request';
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
 import incomingMessageSound from './assets/sounds/notification.mp3';
 import ChatWindow from './components/ChatWindow';
-import { MessageEvent } from './utils/Constants';
+import { MessageEvent, TypeOfAction } from './utils/Constants';
 
 class PopupChat extends Component {
   constructor() {
@@ -72,20 +74,27 @@ class PopupChat extends Component {
 
   handleReactMessageListener(e) {
     const message = e.reactMessage;
+    const { reactionData, user } = message;
     const { messageList } = this.state;
-    const index = messageList.findIndex((e) => e.id == message.comment_id);
+    const index = messageList.findIndex((e) => e.id == reactionData.messageId);
     if (index > 0) {
       const reactionMessage = messageList[index].reaction;
       const reactObj = {
-        avatar: message.userAvatar,
-        react: message.reaction,
-        user_sent_id: message.userId,
-        user_sent_name: message.userName,
+        avatar: user.avatar,
+        react: reactionData.reaction,
+        user_sent_id: user.id,
+        user_sent_name: user.fullname,
       };
       if (reactionMessage && reactionMessage.length) {
-        const findUserIndex = reactionMessage.findIndex(e => e.user_sent_id == message.userId);
+        const findUserIndex = reactionMessage.findIndex(
+          (e) => e.user_sent_id == user.id
+        );
         if (findUserIndex >= 0) {
-          messageList[index].reaction[findUserIndex].react = message.reaction;
+          if (message.actType === 'add') {
+            messageList[index].reaction[findUserIndex].react = reactionData.reaction;
+          } else {
+            messageList[index].reaction.splice(findUserIndex, 1);
+          }
         } else {
           messageList[index].reaction.push(reactObj);
         }
@@ -98,7 +107,7 @@ class PopupChat extends Component {
 
   handleNewMessageListener(e) {
     window.parent.postMessage('NEW MESSAGE', '*');
-    setTypeOfAction('add');
+    setTypeOfAction(TypeOfAction.ADD);
     var audio = new Audio(incomingMessageSound);
     var resp = audio.play();
     if (resp !== undefined) {
@@ -166,11 +175,13 @@ class PopupChat extends Component {
         );
       });
     } else {
-      setTypeOfAction('add');
+      let replyObject = getReplyObject();
+      setTypeOfAction(TypeOfAction.ADD);
       const index = messageList.length + 1;
       message.id = null;
       message.index = index;
       message.data.date = moment().format('DD/MM/YYYY hh:mmA');
+      message.reply = replyObject;
       this.setState(
         {
           messageList: [...messageList, message],
@@ -263,22 +274,20 @@ class PopupChat extends Component {
     if (type === 'copy') {
       this.copyToClipboard(message.data.text);
     } else if (type === 'edit') {
-      setTypeOfAction('edit');
+      setTypeOfAction(TypeOfAction.EDIT);
       UserInputHelper.setText(message.data.text);
       setMessageId(message.id);
       const editMessage = new CustomEvent(MessageEvent.EDIT_MY_MESSAGE);
       document.dispatchEvent(editMessage);
     } else if (type === 'delete') {
-      setTypeOfAction('delete');
+      setTypeOfAction(TypeOfAction.DELETE);
       requestDeleteMessage(message.id);
       this._handleDeteleMessage(message.id);
     } else if (type === 'reply') {
-      setTypeOfAction('reply');
+      setReplyObject(message);
+      setTypeOfAction(TypeOfAction.REPLY);
       const replyEvent = new CustomEvent(MessageEvent.REPLY_MESSAGE);
-      const replyObject = {
-        userName: message.author == 'me' ? '' : message.data.name,
-        text: message.data.text
-      };
+      const replyObject = message;
       replyEvent.replyObject = replyObject;
       document.dispatchEvent(replyEvent);
     }
@@ -294,7 +303,7 @@ class PopupChat extends Component {
   onLoadMore = async () => {
     const { messageList, canLoadMore } = this.state;
     if (!canLoadMore) return;
-    setTypeOfAction('loadMore');
+    setTypeOfAction(TypeOfAction.LOAD_MORE);
     this.setState({ isLoadMore: true });
     const lastId = messageList[0].id;
     const response = await requestGetListMessage(lastId);

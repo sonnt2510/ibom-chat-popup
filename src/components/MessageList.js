@@ -3,6 +3,7 @@ import Message from './Messages';
 import loadingGif from './../assets/loading.gif';
 import isTypingGif from './../assets/isTyping.gif';
 import { getTypeOfAction } from '../services/request';
+import { TypeOfAction } from '../utils/Constants';
 
 class MessageList extends Component {
   oldScrollHeight;
@@ -30,10 +31,10 @@ class MessageList extends Component {
     const typeOfAction = getTypeOfAction();
     if (_prevProps.messages !== this.props.messages) {
       this.setState({ listMessage: this.props.messages }, () => {
-        if (typeOfAction === 'get' || typeOfAction === 'add') {
+        if (typeOfAction === 'get' || typeOfAction === TypeOfAction.ADD) {
           this.scrollList.scrollTop = this.scrollList.scrollHeight;
           this.oldScrollHeight = this.scrollList.scrollHeight;
-        } else if (typeOfAction === 'loadMore') {
+        } else if (typeOfAction === TypeOfAction.LOAD_MORE || typeOfAction === TypeOfAction.REPLY) {
           this.scrollList.scrollTop =
             this.scrollList.scrollHeight - this.oldScrollHeight;
           this.oldScrollHeight = this.scrollList.scrollHeight;
