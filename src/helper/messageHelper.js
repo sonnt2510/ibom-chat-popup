@@ -1,42 +1,38 @@
-
-import imageExtensions from '../image-extensions.json';
+import { converObjectMessageFileData, convertObjectMessageData } from '../utils/Message';
 export class MessageHelper {
 
     static convertMessageResponseToChatMessage = (payload, currentUserId) => {
+      const {reply, fileList, created_by} = payload;
+      const convertMessageData = (data) => {
+        if (!data) return;
+        let objectMessage = {};
+        const { fileList } = data;
+        objectMessage = convertObjectMessageData(data);
+    
+        if (fileList && fileList.length) {
+          for (const i in fileList) {
+            objectMessage = converObjectMessageFileData(data, fileList[i]);
+          }
+        }
+        return objectMessage;
+      };
 
       const listMessage = [];
-      const { user_created_name, avatar, comment_content, 
-        created_date_view, fileList, comment_id, allow_del,
-        allow_edit,
-        created_by
-      } = payload;
-      let objMessage = {
-        id: comment_id,
-        author: currentUserId == created_by ? 'me' : 'them',
-        type: 'text',
-        isAllowDelete: allow_del === 1,
-        isAllowEdit: allow_edit === 1,
-        data: {
-          name: user_created_name,
-          text: comment_content,
-          date: created_date_view,
-          avatar
-        }
-      };
+      let objMessage = convertMessageData(payload);
+      objMessage.reply = convertMessageData(reply);
+      objMessage.author = currentUserId == created_by ? 'me' : 'them';
 
       if (fileList && fileList.length) {
         for (const i in fileList) {
-          const fileMessage = objMessage;
-          const { extension, file_path, file_name } = fileList[i];
-          const type = imageExtensions.includes(extension.replace('.', '')) ? 'image' : 'file';
-          objMessage.type = 'file';
-          objMessage.data.url = file_path;
-          objMessage.data.fileName = file_name;
-          objMessage.data.type = type;
+          let fileMessage = converObjectMessageFileData(payload, fileList[i]);
+          fileMessage.reply = convertMessageData(reply);
+          fileMessage.author = currentUserId == created_by ? 'me' : 'them';
           listMessage.push(fileMessage);
         }
       } else {
-        listMessage.push(objMessage);
+        if (objMessage.data.text) {
+          listMessage.push(objMessage);
+        }
       }
       return listMessage;
     }

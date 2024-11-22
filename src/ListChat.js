@@ -13,7 +13,6 @@ import filterIcon from './assets/filter.png';
 import _debounce from 'lodash/debounce';
 import FilterOptions from './FilterOptions';
 import EmojiConvertor from 'emoji-js';
-import incomingMessageSound from './assets/sounds/notification.mp3';
 import { MessageEvent } from './utils/Constants';
 
 class ListChat extends Component {
@@ -61,23 +60,8 @@ class ListChat extends Component {
     }, 100);
   }
 
-  handleSound = () => {
-    var audio = new Audio(incomingMessageSound);
-    var resp = audio.play();
-    if (resp !== undefined) {
-      resp
-        .then((_) => {
-          audio.play();
-        })
-        .catch((error) => {
-          console.log('error', error);
-        });
-    }
-  }
-
   handleMessageListener(e, type) {
     window.parent.postMessage('NEW MESSAGE', '*');
-    this.handleSound();
     let spliceItem = {};
     let listMessage = [];
     const newMessage = e.newMessage;

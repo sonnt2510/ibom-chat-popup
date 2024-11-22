@@ -12,6 +12,7 @@ let userId = null;
 let appType = null;
 let userName = '';
 let userList = [];
+let userListInfo = [];
 let messageId = '';
 let typeOfAction = 'get';
 let sessionId = '';
@@ -114,6 +115,10 @@ export const requestGetSetting = async () => {
     userList = response.data.userList.map((e) => {
       return JSON.stringify(e.user_id);
     });
+
+    userListInfo = response.data.userList.map((e) => {
+      return e;
+    });
   }
   return {
     title: response.data.OBJECT_INSTANCE_NAME,
@@ -158,11 +163,13 @@ export const requestGetListMessage = async (lastId) => {
       let objMessage = convertMessageData(listMessageResponse[i]);
       objMessage.index = index;
       objMessage.reply = convertMessageData(reply);
-  
 
       if (fileList && fileList.length) {
         for (const j in fileList) {
-          let fileMessage = converObjectMessageFileData(listMessageResponse[i], fileList[j]);
+          let fileMessage = converObjectMessageFileData(
+            listMessageResponse[i],
+            fileList[j]
+          );
           fileMessage.index = index;
           fileMessage.reply = convertMessageData(reply);
           messageList.push(fileMessage);
@@ -249,34 +256,33 @@ export const requestDeleteMessage = (id) => {
   doPostRequest('common/comment.do', formdata);
 };
 
-// reactionData: {
-//   messageId: number | string;
-//   reaction: string;
-//   objectId: number;
-//   objectInstanceId: number;
-// };
-// user: UserModel;
-// actType: 'add' | 'remove';
-
-// id: number;
-//     email?: string;
-//     fullname?: string;
-//     avatar?: string;
+export const requestGetFiles = async () => {
+  let formdata = new FormData();
+  formdata.append('file_type', 0);
+  formdata.append('object_instance_id', objInstanceId);
+  formdata.append('object_id', objId);
+  formdata.append('is_order', false);
+  formdata.append('app_type', appType);
+  const response = await doPostRequest('comment/file.do', formdata);
+  const fileList = response?.data?.fileList ?? [];
+  return fileList;
+};
 
 export const requestReactMessage = (id, react, eventType, user) => {
   const payloadEvent = getTypingPayload();
-  payloadEvent.reactionData = {
+  (payloadEvent.reactionData = {
     messageId: id,
     reaction: react,
     objectId: objId,
-    objInstanceId: objInstanceId 
-  },
-  payloadEvent.actType = eventType;
+    objectInstanceId: objInstanceId,
+  }),
+  (payloadEvent.actType = eventType);
   payloadEvent.user = {
     id: user.userId,
     fullname: user.name,
-    avatar: user.avatar
+    avatar: user.avatar,
   };
+
   ChatHelper.sendReactMessageEvent(payloadEvent);
   let formdata = new FormData();
   formdata.append('react', react);
@@ -342,4 +348,8 @@ export const getCurrentUserId = () => {
 
 export const getCurrentUserName = () => {
   return userName;
+};
+
+export const getUserListInfo = () => {
+  return userListInfo;
 };

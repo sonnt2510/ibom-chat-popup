@@ -1,17 +1,18 @@
-import * as signalR from "@microsoft/signalr";
-import { MessageHelper } from "../helper/messageHelper";
+import * as signalR from '@microsoft/signalr';
+import { MessageHelper } from '../helper/messageHelper';
 import {
   getCurrentUserId,
   getObjId,
   getObjInstanceId,
   getSessionId,
-} from "./request";
-import { MessageEvent } from "../utils/Constants";
+} from './request';
+import { MessageEvent } from '../utils/Constants';
+import axios from 'axios';
 
-let _chathubURI = "";
+let _chathubURI = '';
 let connection = null;
-let _typingState = "ended";
-const typingEvent = new CustomEvent("typing");
+let _typingState = 'ended';
+const typingEvent = new CustomEvent('typing');
 const newMessageEvent = new CustomEvent(MessageEvent.NEW_MESSAGES);
 const editMessageEvent = new CustomEvent(MessageEvent.EDIT_MESSAGE);
 const deleteMessageEvent = new CustomEvent(MessageEvent.DELETE_MESSAGE);
@@ -19,7 +20,14 @@ const reactMessageEvent = new CustomEvent(MessageEvent.REACT_MESSAGE);
 
 export class ChatHubHelper {
   static _isValidMessage = (data) => {
-    console.log("new event", data);
+    console.log('new event', data);
+    const currentUserId = getCurrentUserId();
+    const isMessageBelongToThisUser =
+      data?.userDict?.[currentUserId ?? -1] ?? false;
+    if (!isMessageBelongToThisUser) {
+      return false;
+    }
+   
     const objId = getObjId();
     const objInstanceId = getObjInstanceId();
     const isFromList = !objId && !objInstanceId;
@@ -64,21 +72,24 @@ export class ChatHubHelper {
     case MessageEvent.DELETE_MESSAGE: {
       const deleteEventData = data.payload;
       return (
-        deleteEventData && deleteEventData.comment_id && !isSentByThisDevice
+        deleteEventData &&
+          (deleteEventData.comment_id || deleteEventData.messageId) &&
+          !isSentByThisDevice
       );
     }
     case MessageEvent.REACT_MESSAGE: {
       const reactEventData = data.payload;
       return (
-        reactEventData && reactEventData.object_id == objId &&
-        reactEventData.object_instance_id == objInstanceId
+        reactEventData &&
+          reactEventData.reactionData.objectId == objId &&
+          reactEventData.reactionData.objectInstanceId == objInstanceId
       );
     }
     }
     return false;
   };
 
-  static _onReceivedMessage = (user, dataString) => {
+  static _onReceivedMessage = (dataString) => {
     const data = JSON.parse(dataString);
     const objId = getObjId();
     const objInstanceId = getObjInstanceId();
@@ -129,9 +140,15 @@ export class ChatHubHelper {
   };
 
   static startConnection = (username) => {
-    const uri = `${_chathubURI}chatHub?username=${username}`;
+    // _chathubURI = 'https://ibotsignalrhub.azurewebsites.net/api';
+    // const uri = `${_chathubURI}chatHub?username=${username}`;
+    const uri = `https://ibotsignalrhub.azurewebsites.net/api?username=${username}`;
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(uri)
+      .withUrl(uri, {
+        headers: {
+          'x-ms-client-principal-id': username,
+        },
+      })
       .configureLogging(signalR.LogLevel.Debug)
       .withAutomaticReconnect()
       .build();
@@ -139,53 +156,57 @@ export class ChatHubHelper {
     connection
       .start()
       .then(() => {
-        console.log("SignalR connected");
+        console.log('SignalR connected');
       })
       .catch((error) => {
-        console.log("Connect to signalr failed: ", error);
+        console.log('Connect to signalr failed: ', error);
       });
 
     connection.onclose((error) => {
       if (error) {
-        console.error("SignalR close with error: ", error);
+        console.error('SignalR close with error: ', error);
       } else {
-        console.log("SignalR closed");
+        console.log('SignalR closed');
       }
     });
 
     connection.onreconnecting((error) => {
       if (error) {
-        console.error("SignalR is reconnecting with error: ", error);
+        console.error('SignalR is reconnecting with error: ', error);
       } else {
-        console.log("SignalR is reconnecting");
+        console.log('SignalR is reconnecting');
       }
     });
 
     connection.onreconnected((error) => {
       if (error) {
-        console.error("SignalR is reconnected with error: ", error);
+        console.error('SignalR is reconnected with error: ', error);
       } else {
-        console.log("SignalR is reconncted");
+        console.log('SignalR is reconncted');
       }
     });
 
-    connection.on("ReceiveMessage", (userId, data) =>
-      ChatHubHelper._onReceivedMessage(userId, data)
+    connection.on('newMessage', (data) =>
+      ChatHubHelper._onReceivedMessage(data)
     );
   };
 
   static sendMessageToUsers = (userIds, payload) => {
-    const connectionHub = ChatHubHelper.getConnectionHub();
-    connectionHub
-      .invoke("SendMessageToUsers", userIds, JSON.stringify(payload))
-      .then(() => {})
-      .catch((error) => {
-        console.error("Invoke send messages error: ", error);
-      });
+    // const connectionHub = ChatHubHelper.getConnectionHub();
+    // connectionHub
+    //   .invoke('SendMessageToUsers', userIds, JSON.stringify(payload))
+    //   .then(() => {})
+    //   .catch((error) => {
+    //     console.error('Invoke send messages error: ', error);
+    //   });
+    axios.post('https://ibotsignalrhub.azurewebsites.net/api/sendMessasge', {
+      ...payload,
+      userIds,
+    });
   };
 
   static stopConnection = () => {
-    connection.off("ReceiveMessage");
+    connection.off('newMessage');
     connection.stop();
   };
 

@@ -67,7 +67,8 @@ export const converObjectMessageFileData = (data, file) => {
     user_created_name,
     comment_content,
     created_date_view,
-    avatar
+    avatar, 
+    created_by
   } = data;
   const type = imageExtensions.includes(extension.replace('.', ''))
     ? 'image'
@@ -85,6 +86,7 @@ export const converObjectMessageFileData = (data, file) => {
       fileName: file_name,
       date: created_date_view,
       avatar,
+      userId: created_by,
     },
   };
 };

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import closeIcon from './../assets/close-icon.png';
 import detailIcon from './../assets/icon-detail.png';
+import menuIcon from './../assets/menu-icon.png';
 
 class Header extends Component {
   onClickDetail = () => {
@@ -8,16 +9,31 @@ class Header extends Component {
     this.props.onClose;
   };
   render() {
+    const {teamName, onOpenMenu, isDetail, onClose, isOpenMenu} = this.props;
     return (
       <div className="sc-header">
-        <div className="sc-header--team-name">{this.props.teamName}</div>
-        {this.props.isDetail == 1 ? null : (
-          <div className="sc-header--close-button" onClick={() => this.onClickDetail()}>
-            <img className="sc-header--image" style={{ padding: 8 }} src={detailIcon} alt="" />
+        <div className="sc-header--team-name">{teamName}</div>
+        <div className="sc-header--close-button" onClick={onOpenMenu}>
+          <img
+            className={`sc-header--menuImage ${isOpenMenu ? 'active' : 'inactive'}`}
+            src={menuIcon}
+            alt="menu"
+          />
+        </div>
+        {isDetail == 1 ? null : (
+          <div
+            className="sc-header--close-button"
+            onClick={() => this.onClickDetail()}
+          >
+            <img
+              className="sc-header--image"
+              src={detailIcon}
+              alt="detail"
+            />
           </div>
         )}
-        <div className="sc-header--close-button" onClick={this.props.onClose}>
-          <img className="sc-header--image" src={closeIcon} alt="" />
+        <div className="sc-header--close-button" onClick={onClose}>
+          <img style={{height: 18, width: 18}} className="sc-header--image" src={closeIcon} alt="close" />
         </div>
       </div>
     );

@@ -1,0 +1,134 @@
+.menu-tab {
+    height: 100%;
+    transition: 0.3s ease-in-out;
+    width: 40vw;
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    background-color: white;
+    overflow-y: scroll;
+}
+
+.menu-tab--header {
+    height: 53px;
+    background-color: #EEF0F1;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu-tab--title {
+    font-weight: 500;
+}
+
+.menu-tab--roomName {
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    margin-left: 20px;
+    margin-right: 20px;
+    line-height: 20px;
+    margin-bottom: 30px;
+}
+
+.menu-tab--listAvaWrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.menu-tab--avatar {
+    height: 35px;
+    width: 35px;
+    margin-left: -5px;
+    border-radius: 50%;
+}
+
+.menu-tab--avatarNumber {
+    height: 35px;
+    width: 35px;
+    margin-left: -5px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #EEF0F1;
+}
+
+.menu-tab--seperator {
+    height: 10px;
+    width: 100%;
+    background-color: #EEF0F1;
+}
+
+.menu-tab--sectionTitle {
+    font-weight: 500;
+    margin-left: 20px;
+}
+
+.menu-tab--peopleIcon {
+    height: 18px;
+    width: 18px;
+    margin-left: 20px;
+    margin-right: 10px ;
+}
+
+.menu-tab--memberHeaderWrap {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    cursor: pointer;
+}
+
+.menu-tab--arrowIcon {
+    height: 12px;
+    width: 12px;
+    position: absolute;
+    right: 20px;
+    margin-top: 5px;
+}
+
+.menu-tab--memberItemWrap {
+    display: flex;
+    padding: 10px 20px;
+    align-items: center;
+    span {
+        font-size: 14px;
+        margin-left: 10px;
+    }
+}
+
+.menu-tab--memberWrap {
+    border-top: 1px solid #EEF0F1;
+}
+
+.menu-tab--listImageWrap {
+    border-top: 1px solid #EEF0F1;
+    flex-wrap: wrap;
+    padding-bottom: 10px;
+}
+
+.menu-tab--image {
+    width: 32.3%;
+    height: 130px;
+    margin-right: 0.5%;
+    margin-left: 0.5%;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-top: 3px;
+    cursor: pointer;
+}
+
+.menu-tab--listFileItem {
+    padding-top: 10px;
+    padding-right: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #EEF0F1;
+    cursor: pointer;
+
+    span {
+        font-size: 14px;
+        margin-left: 10px;
+    }
+}

@@ -9,7 +9,6 @@ const TextMessage = (props) => {
   // var emoji = new EmojiConvertor();
 
   const { data, author, showName, reply } = props;
-
   let text = data.text;
   if (text.includes('\r') && !text.includes('\n')) {
     text = text.replace('\r', '\n');

@@ -12,6 +12,7 @@ import {
   requestGetSetting,
   setReplyObject,
   getReplyObject,
+  requestGetFiles,
 } from './services/request';
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
@@ -32,6 +33,7 @@ class PopupChat extends Component {
       isAllowAttach: false,
       url: '',
       canLoadMore: true,
+      fileList: [],
     };
   }
 
@@ -40,6 +42,7 @@ class PopupChat extends Component {
     if (objInstanceId && objId) {
       this._getListMessage();
       this._getInfo();
+      this._getListFiles();
       document.addEventListener(
         MessageEvent.NEW_MESSAGES,
         (e) => this.handleNewMessageListener(e),
@@ -91,7 +94,8 @@ class PopupChat extends Component {
         );
         if (findUserIndex >= 0) {
           if (message.actType === 'add') {
-            messageList[index].reaction[findUserIndex].react = reactionData.reaction;
+            messageList[index].reaction[findUserIndex].react =
+              reactionData.reaction;
           } else {
             messageList[index].reaction.splice(findUserIndex, 1);
           }
@@ -108,17 +112,6 @@ class PopupChat extends Component {
   handleNewMessageListener(e) {
     window.parent.postMessage('NEW MESSAGE', '*');
     setTypeOfAction(TypeOfAction.ADD);
-    var audio = new Audio(incomingMessageSound);
-    var resp = audio.play();
-    if (resp !== undefined) {
-      resp
-        .then((_) => {
-          audio.play();
-        })
-        .catch((error) => {
-          console.log('error', error);
-        });
-    }
     this.setState({
       messageList: [...this.state.messageList, ...e.newMessage],
     });
@@ -127,7 +120,9 @@ class PopupChat extends Component {
   handleEditDeleteMessageListener(e, type) {
     const message = e.newMessage;
     const { messageList } = this.state;
-    const index = messageList.findIndex((e) => e.id == message.comment_id);
+    const index = messageList.findIndex(
+      (e) => e.id == message.comment_id || e.id == message.messageId
+    );
     if (index > 0) {
       if (type === 'edit') {
         messageList[index].data.text = message.content;
@@ -136,6 +131,11 @@ class PopupChat extends Component {
       }
       this.setState({ messageList });
     }
+  }
+
+  async _getListFiles() {
+    const response = await requestGetFiles();
+    this.setState({ fileList: response });
   }
 
   async _getInfo() {
@@ -332,6 +332,7 @@ class PopupChat extends Component {
       isAllowAddNew,
       isAllowAttach,
       url,
+      fileList,
     } = this.state;
     const listMessagesParse = JSON.parse(JSON.stringify(messageList));
 
@@ -364,28 +365,27 @@ class PopupChat extends Component {
     }
 
     return (
-      <div>
-        <ChatWindow
-          isLoadMore={isLoadMore}
-          onLoadMore={this.onLoadMore}
-          optionClick={this.optionClick}
-          loading={loading}
-          profile={{
-            roomName,
-            url,
-            isDetail: this.props.isDetail,
-          }}
-          onMessageWasSent={this._onMessageWasSent.bind(this)}
-          onFilesSelected={this._onFilesSelected.bind(this)}
-          messageList={listMessagesParse}
-          isOpen={true}
-          onClose={() => {
-            window.parent.postMessage('CLOSE', '*');
-          }}
-          isAllowAddNew={isAllowAddNew}
-          isAllowAttach={isAllowAttach}
-        />
-      </div>
+      <ChatWindow
+        fileList={fileList}
+        isLoadMore={isLoadMore}
+        onLoadMore={this.onLoadMore}
+        optionClick={this.optionClick}
+        loading={loading}
+        profile={{
+          roomName,
+          url,
+          isDetail: this.props.isDetail,
+        }}
+        onMessageWasSent={this._onMessageWasSent.bind(this)}
+        onFilesSelected={this._onFilesSelected.bind(this)}
+        messageList={listMessagesParse}
+        isOpen={true}
+        onClose={() => {
+          window.parent.postMessage('CLOSE', '*');
+        }}
+        isAllowAddNew={isAllowAddNew}
+        isAllowAttach={isAllowAttach}
+      />
     );
   }
 }
