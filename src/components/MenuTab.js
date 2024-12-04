@@ -8,6 +8,7 @@ import { getUserListInfo } from '../services/request';
 import Collapsible from 'react-collapsible';
 import imageExtensions from '../image-extensions.json';
 import { mapFileIcon } from '../utils/Message';
+import ListFile from './ListFile';
 
 class MenuTab extends Component {
   constructor() {
@@ -16,6 +17,7 @@ class MenuTab extends Component {
       isOpenMember: false,
       isOpenImage: false,
       isOpenFile: false,
+      screen: '',
     };
   }
 
@@ -29,7 +31,7 @@ class MenuTab extends Component {
             onClick={() => this.setState({ isOpenMember: !isOpenMember })}
             className="menu-tab--memberHeaderWrap"
           >
-            <span className="menu-tab--sectionTitle">Thành viên nhóm</span>
+            <span className="menu-tab--sectionTitle">Thành viên tham gia</span>
             <div style={{ display: 'flex', marginTop: 10 }}>
               <img
                 src={peopleIcon}
@@ -87,7 +89,7 @@ class MenuTab extends Component {
               className="menu-tab--peopleIcon"
             />
             <span style={{ marginLeft: 0 }} className="menu-tab--sectionTitle">
-              Ảnh
+              Ảnh/Video
             </span>
             <img
               src={isOpenImage ? arrowUp : arrowDown}
@@ -108,6 +110,12 @@ class MenuTab extends Component {
               src={e.file_path}
             />
           ))}
+        </div>
+        <div
+          onClick={() => this.setState({ screen: 'image' })}
+          className="menu-tab--allButton"
+        >
+          Xem tất cả
         </div>
       </Collapsible>
     );
@@ -153,7 +161,7 @@ class MenuTab extends Component {
               key={e.file_path}
             >
               <img
-                style={{ marginLeft: 20, marginBottom: -3 }}
+                style={{ marginBottom: -3 }}
                 alt="fileIcon"
                 src={mapFileIcon(e.file_name)}
                 height={20}
@@ -162,6 +170,12 @@ class MenuTab extends Component {
               <span>{e.file_name}</span>
             </div>
           ))}
+        </div>
+        <div
+          onClick={() => this.setState({ screen: 'file' })}
+          className="menu-tab--allButton"
+        >
+          Xem tất cả
         </div>
       </Collapsible>
     );
@@ -196,10 +210,19 @@ class MenuTab extends Component {
   render() {
     const userList = getUserListInfo();
     const { roomName } = this.props;
+    const { screen } = this.state;
+    if (screen) {
+      return (
+        <ListFile
+          onClickBack={() => this.setState({ screen: '' })}
+          screen={screen}
+        />
+      );
+    }
     return (
       <div>
         <div className="menu-tab--header">
-          <span className="menu-tab--title">Thông tin hội thoại</span>
+          <span className="menu-tab--title">Thông tin</span>
         </div>
         <div className="menu-tab--listAvaWrap">
           {userList.slice(0, 5).map((e) => {

@@ -19,6 +19,7 @@ import {
 import { ReactEmoji, ReactValue } from '../../utils/Constants';
 import { mapReactWithReactId } from '../../utils/Reaction';
 import ReactionModal from './ReactionModal';
+import { getDateText } from '../../utils/Message';
 
 class Message extends Component {
   constructor() {
@@ -304,15 +305,40 @@ class Message extends Component {
     );
   };
 
+  renderAlertMessage = () => {
+    const { data } = this.props.message;
+    let dateText = getDateText(data.date);
+    return (
+      <div className="sc-message--alertWrap">
+        <span className="sc-message--alertTitle">{data.name}</span>
+        <span className="sc-message--alertDescription">{data.text}</span>
+        <div className="sc-message-alertTimeWrap">
+          <img src={waitingIcon} className="sc-message-alertClockIcon" />
+          <span className="sc-message-alertTime">{dateText ? dateText : data.date}</span>
+        </div>
+      </div>
+    );
+  };
+
   render() {
-    const { data, author, type, showName, showDate, index, reaction } =
-      this.props.message;
+    const {
+      data,
+      author,
+      type,
+      showName,
+      showDate,
+      index,
+      reaction,
+      commentType,
+    } = this.props.message;
     const { hoverMessageIndex, reactionModalVisible } = this.state;
     const date = data.date.split(' ')[0];
     let contentClassList = [
       'sc-message--content',
       author === 'me' ? 'sent' : 'received',
     ];
+
+    if (commentType === 'alert') return this.renderAlertMessage();
     return (
       <div>
         <ReactionModal

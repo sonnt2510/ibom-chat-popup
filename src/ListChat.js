@@ -68,13 +68,14 @@ class ListChat extends Component {
     const list = this.state.messageList;
     const index = list.findIndex(
       (e) =>
-        e.object_id == newMessage.object_id &&
-        e.object_instance_id == newMessage.object_instance_id
+        e.object_id == (newMessage.object_id || newMessage.objectId) &&
+        e.object_instance_id == (newMessage.object_instance_id || newMessage.objectInstanceId)
     );
     if (index >= 0) {
       if (type === 'add') {
         spliceItem = list.splice(index, 1)[0];
         listMessage = spliceItem.listMessage;
+        newMessage.is_read = 0;
         if (listMessage && listMessage.length) {
           listMessage.push(newMessage);
         } else {
@@ -86,7 +87,8 @@ class ListChat extends Component {
         listMessage = list[index].listMessage;
         if (listMessage && listMessage.length) {
           const findListMessageEditIndex = listMessage.findIndex(
-            (e) => e.comment_id === newMessage.comment_id
+            (e) =>
+              e.comment_id == (newMessage.comment_id || newMessage.messageId)
           );
           if (findListMessageEditIndex >= 0) {
             if (type === 'edit') {
@@ -139,6 +141,11 @@ class ListChat extends Component {
       );
       if (index >= 0) {
         list[index].is_read = 1;
+        if (list[index].listMessage) {
+          list[index].listMessage.map((e) => {
+            return (e.is_read = 1);
+          });
+        }
         this.setState({ messageList: list });
       }
     }
@@ -153,14 +160,16 @@ class ListChat extends Component {
     let userAvatar = e.avatar;
     let commentId = e.comment_id;
     let userId = e.created_by;
+    let date = e.created_date_view;
     if (e.listMessage && e.listMessage.length) {
       const lastMessage = e.listMessage[e.listMessage.length - 1];
       comment = lastMessage.comment_content;
       userName = lastMessage.user_created_name;
-      isRead = 0;
+      isRead = lastMessage.is_read;
       userAvatar = lastMessage.avatar;
       commentId = lastMessage.comment_id;
       userId = lastMessage.created_by;
+      date = lastMessage.created_date_view;
     }
 
     if (userId == currentUserId) {
@@ -181,7 +190,9 @@ class ListChat extends Component {
           <div style={{ width: 40 }}>
             <img
               src={
-                userAvatar ? userAvatar : 'https://pro.ibom.vn/images/nophoto.jpg'
+                userAvatar
+                  ? userAvatar
+                  : 'https://pro.ibom.vn/images/nophoto.jpg'
               }
               className="list-chat-item-avatar"
             />
@@ -196,22 +207,15 @@ class ListChat extends Component {
             {content}
           </span>
         </div>
-        <span className="list-chat-item-date">{e.created_date_view}</span>
+        <span className="list-chat-item-date">{date}</span>
       </div>
     );
   };
 
   onHandleChangeSearch = (e) => {
     const text = e.target.value;
-    if (text == '') {
-      this.setState({
-        messageList: this.state.defaultMessageList,
-        searchValue: '',
-      });
-    } else if (text.length >= 2) {
-      this.setState({ loading: true });
-      this.functionDebounce(text);
-    }
+    this.setState({ loading: true, page: 1 });
+    this.functionDebounce(text);
     this.setState({ searchValue: text });
   };
 
@@ -250,7 +254,8 @@ class ListChat extends Component {
   };
 
   render() {
-    const { messageList, loading, displayFilterOption, isLoadMore } = this.state;
+    const { messageList, loading, displayFilterOption, isLoadMore } =
+      this.state;
     if (displayFilterOption)
       return (
         <FilterOptions

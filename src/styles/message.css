@@ -308,3 +308,45 @@
     font-size: 13px !important;
   }
 }
+
+.sc-message--alertWrap {
+    padding: 20px;
+    border-radius: 10px;
+    width: 40vw;
+    background-color: #f4f7f9;
+    margin: auto;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sc-message--alertTitle {
+  color: #ff3c3c;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.sc-message--alertDescription {
+  margin-top: 10px;
+  font-size: 15px;
+  text-align: center;
+  line-height: 23px;
+}
+
+.sc-message-alertClockIcon {
+  height: 30px;
+  width: 30px;
+}
+
+.sc-message-alertTimeWrap {
+  display: flex;
+  margin-top: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.sc-message-alertTime {
+  font-size: 14px;
+  margin-left: 5px;
+}

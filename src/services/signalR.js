@@ -27,7 +27,7 @@ export class ChatHubHelper {
     if (!isMessageBelongToThisUser) {
       return false;
     }
-   
+
     const objId = getObjId();
     const objInstanceId = getObjInstanceId();
     const isFromList = !objId && !objInstanceId;
@@ -67,7 +67,7 @@ export class ChatHubHelper {
 
     case MessageEvent.EDIT_MESSAGE: {
       const editEventData = data.payload;
-      return editEventData && editEventData.comment_id && !isSentByThisDevice;
+      return editEventData && (editEventData.comment_id || editEventData.messageId) && !isSentByThisDevice;
     }
     case MessageEvent.DELETE_MESSAGE: {
       const deleteEventData = data.payload;
@@ -140,9 +140,7 @@ export class ChatHubHelper {
   };
 
   static startConnection = (username) => {
-    // _chathubURI = 'https://ibotsignalrhub.azurewebsites.net/api';
-    // const uri = `${_chathubURI}chatHub?username=${username}`;
-    const uri = `https://ibotsignalrhub.azurewebsites.net/api?username=${username}`;
+    const uri = `${_chathubURI}?username=${username}`;
     connection = new signalR.HubConnectionBuilder()
       .withUrl(uri, {
         headers: {
@@ -192,14 +190,7 @@ export class ChatHubHelper {
   };
 
   static sendMessageToUsers = (userIds, payload) => {
-    // const connectionHub = ChatHubHelper.getConnectionHub();
-    // connectionHub
-    //   .invoke('SendMessageToUsers', userIds, JSON.stringify(payload))
-    //   .then(() => {})
-    //   .catch((error) => {
-    //     console.error('Invoke send messages error: ', error);
-    //   });
-    axios.post('https://ibotsignalrhub.azurewebsites.net/api/sendMessasge', {
+    axios.post(`${_chathubURI}/sendMessasge`, {
       ...payload,
       userIds,
     });

@@ -13,10 +13,10 @@ import {
   setReplyObject,
   getReplyObject,
   requestGetFiles,
+  requestGetImages,
 } from './services/request';
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
-import incomingMessageSound from './assets/sounds/notification.mp3';
 import ChatWindow from './components/ChatWindow';
 import { MessageEvent, TypeOfAction } from './utils/Constants';
 
@@ -112,6 +112,22 @@ class PopupChat extends Component {
   handleNewMessageListener(e) {
     window.parent.postMessage('NEW MESSAGE', '*');
     setTypeOfAction(TypeOfAction.ADD);
+
+    if (e.newMessage[0].type == 'file') {
+      const { data, fileId, extension } = e.newMessage[0];
+      const fileObj = [
+        {
+          created_date: data.date,
+          file_id: fileId,
+          file_name: data.fileName,
+          file_path: data.url,
+          user_created_name: data.name,
+          extension,
+        },
+      ];
+      this.setState({ fileList: [...fileObj, ...this.state.fileList] });
+    }
+
     this.setState({
       messageList: [...this.state.messageList, ...e.newMessage],
     });
@@ -119,23 +135,30 @@ class PopupChat extends Component {
 
   handleEditDeleteMessageListener(e, type) {
     const message = e.newMessage;
-    const { messageList } = this.state;
+    const { messageList, fileList } = this.state;
     const index = messageList.findIndex(
-      (e) => e.id == message.comment_id || e.id == message.messageId
+      (e) => e.id == (message.comment_id || message.messageId)
     );
     if (index > 0) {
       if (type === 'edit') {
         messageList[index].data.text = message.content;
       } else {
+        const messageItem = messageList[index];
+        if (messageItem && messageItem.type === 'file') {
+          const fileIndex = fileList.findIndex(
+            (e) => e.file_id == messageItem.fileId
+          );
+          fileList.splice(fileIndex, 1);
+        }
         messageList.splice(index, 1);
       }
-      this.setState({ messageList });
+      this.setState({ messageList, fileList });
     }
   }
 
   async _getListFiles() {
-    const response = await requestGetFiles();
-    this.setState({ fileList: response });
+    const response = await Promise.all([requestGetFiles(), requestGetImages()]);
+    this.setState({ fileList: [...response[0], ...response[1]] });
   }
 
   async _getInfo() {
@@ -208,6 +231,7 @@ class PopupChat extends Component {
       allowDel
     );
     if (response.isSuccess) {
+      const fileList = response.commentInfo.fileList;
       const id = response.commentId || propsId;
       const listAssign = Object.assign([], this.state.messageList);
       const findIndex = listAssign.findIndex((e) => e.index === index);
@@ -216,6 +240,11 @@ class PopupChat extends Component {
       listAssign[findIndex].isAllowDelete = response.isAllowEdit == 1;
       this.setState({ messageList: listAssign });
       setMessageId('');
+
+      if (fileList && fileList.length > 0) {
+        this.setState({ fileList: [...fileList, ...this.state.fileList] });
+        listAssign[findIndex].fileId = fileList[0].file_id;
+      }
     }
   };
 
@@ -294,10 +323,18 @@ class PopupChat extends Component {
   };
 
   _handleDeteleMessage = (id) => {
-    const { messageList } = this.state;
+    const { messageList, fileList } = this.state;
     const index = messageList.findIndex((e) => e.id === id);
+
+    const messageItem = messageList[index];
+    if (messageItem && messageItem.type === 'file') {
+      const fileIndex = fileList.findIndex(
+        (e) => e.file_id == messageItem.fileId
+      );
+      fileList.splice(fileIndex, 1);
+    }
     messageList.splice(index, 1);
-    this.setState({ messageList });
+    this.setState({ messageList, fileList });
   };
 
   onLoadMore = async () => {

@@ -33,3 +33,13 @@ export const TypeOfAction = {
   DELETE: 'delete',
   REPLY: 'reply'
 };
+
+export const ScrollEvent = {
+  BOTTOM: 'react_bottom',
+};
+
+export const FilePageSize = {
+  IMAGE: 12,
+  FILES: 10
+};
+

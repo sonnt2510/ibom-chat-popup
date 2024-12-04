@@ -4,8 +4,10 @@ import MessageList from './MessageList';
 import UserInput from './UserInput';
 import Header from './Header';
 import MenuTab from './MenuTab';
+import { ScrollEvent } from '../utils/Constants';
 
 class ChatWindow extends Component {
+  scrollToBottomEvent = new CustomEvent(ScrollEvent.BOTTOM);
   constructor(props) {
     super(props);
     this.state = {
@@ -24,6 +26,15 @@ class ChatWindow extends Component {
   openMenu = () => {
     this.setState({ isOpenMenu: !this.state.isOpenMenu });
   };
+
+  handleScroll = (e) => {
+    const bottom =
+      e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
+    if (bottom) {
+      document.dispatchEvent(this.scrollToBottomEvent);
+    }
+  };
+
 
   render() {
     const {isOpenMenu} = this.state;
@@ -64,7 +75,7 @@ class ChatWindow extends Component {
             showEmoji={this.props.showEmoji}
           />
         </div>
-        <div className={menuTabClassList.join(' ')}>
+        <div onScroll={this.handleScroll} className={menuTabClassList.join(' ')}>
           <MenuTab fileList={this.props.fileList} roomName={this.props.profile.roomName} />
         </div>
       </div>

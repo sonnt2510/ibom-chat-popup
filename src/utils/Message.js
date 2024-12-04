@@ -35,6 +35,7 @@ export const convertObjectMessageData = (data) => {
     reaction,
     created_by,
     reply,
+    comment_type,
   } = data;
 
   const convertDate = moment(created_date_view, 'DD/MM/YYYY hh:mmA').format(
@@ -48,6 +49,7 @@ export const convertObjectMessageData = (data) => {
     isAllowEdit: allow_edit === 1,
     reaction,
     reply,
+    commentType: comment_type,
     data: {
       name: user_created_name,
       text: comment_content,
@@ -59,7 +61,7 @@ export const convertObjectMessageData = (data) => {
 };
 
 export const converObjectMessageFileData = (data, file) => {
-  const { extension, file_path, file_name } = file;
+  const { extension, file_path, file_name, file_id } = file;
   const {
     comment_id,
     text_align,
@@ -67,8 +69,8 @@ export const converObjectMessageFileData = (data, file) => {
     user_created_name,
     comment_content,
     created_date_view,
-    avatar, 
-    created_by
+    avatar,
+    created_by,
   } = data;
   const type = imageExtensions.includes(extension.replace('.', ''))
     ? 'image'
@@ -78,6 +80,8 @@ export const converObjectMessageFileData = (data, file) => {
     author: text_align === 2 ? 'me' : 'them',
     type: 'file',
     isAllowDelete: allow_del === 1,
+    fileId: file_id,
+    extension,
     data: {
       name: user_created_name,
       type,
@@ -89,4 +93,35 @@ export const converObjectMessageFileData = (data, file) => {
       userId: created_by,
     },
   };
+};
+
+export const getDateText = (fullDateMessage) => {
+  const dateMessage = fullDateMessage.split(' ')[0];
+  const timeMessage = fullDateMessage.split(' ')[1];
+
+  const date = moment(dateMessage, 'DD/MM/YYYY');
+
+  const nowDay = moment().date();
+  const nowMonth = moment().month() + 1;
+  const nowYear = moment().year();
+
+  const messageDay = moment(date).date();
+  const messageMonth = moment(date).month() + 1;
+  const messageYear = moment(date).year();
+
+  if (
+    nowDay === messageDay &&
+    nowMonth === messageMonth &&
+    nowYear === messageYear
+  ) {
+    return `Hôm nay lúc ${timeMessage}`;
+  } else if (
+    nowDay === messageDay &&
+    (nowMonth - 1) === messageMonth &&
+    nowYear === messageYear
+  ) {
+    return `Hôm qua lúc ${timeMessage}`;
+  }
+
+  return '';
 };

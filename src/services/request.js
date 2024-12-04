@@ -5,6 +5,7 @@ import {
   converObjectMessageFileData,
   convertObjectMessageData,
 } from '../utils/Message';
+import { FilePageSize } from '../utils/Constants';
 
 let objInstanceId = null;
 let objId = null;
@@ -224,23 +225,17 @@ export const requestSendMessage = async (
     payloadEvent.content = comment;
     payloadEvent.messageId = messageId;
     ChatHelper.sendEditMessageEvent(comment, messageId, allowDel, allowEdit);
-    return {
-      isSuccess: response.data.result === 'success',
-      commentId: response.data.comment_id,
-      isAllowDelete: allowDel,
-      isAllowEdit: allowEdit,
-    };
   } else {
     ChatHelper.sendNewMessageEvent(response.data.commentInfo);
-    const allow_del = response.data.commentInfo.allow_del;
-    const allow_edit = response.data.commentInfo.allow_edit;
-    return {
-      isSuccess: response.data.result === 'success',
-      commentId: response.data.comment_id,
-      isAllowDelete: allow_del == 1,
-      isAllowEdit: allow_edit == 1,
-    };
   }
+
+  return {
+    isSuccess: response.data.result === 'success',
+    commentId: response.data.comment_id,
+    isAllowDelete: messageId ? allowDel : true,
+    isAllowEdit: messageId ? allowEdit : true,
+    commentInfo: response.data.commentInfo,
+  };
 };
 
 export const requestDeleteMessage = (id) => {
@@ -256,17 +251,36 @@ export const requestDeleteMessage = (id) => {
   doPostRequest('common/comment.do', formdata);
 };
 
-export const requestGetFiles = async () => {
+export const requestGetFiles = async (keySearch, page = 1) => {
   let formdata = new FormData();
-  formdata.append('file_type', 0);
+  formdata.append('file_type', 2);
   formdata.append('object_instance_id', objInstanceId);
   formdata.append('object_id', objId);
   formdata.append('is_order', false);
   formdata.append('app_type', appType);
+  formdata.append('key_search', keySearch);
+  formdata.append('page_size', FilePageSize.FILES);
+  formdata.append('page', page);
   const response = await doPostRequest('comment/file.do', formdata);
   const fileList = response?.data?.fileList ?? [];
   return fileList;
 };
+
+export const requestGetImages = async (keySearch, page = 1) => {
+  let formdata = new FormData();
+  formdata.append('file_type', 1);
+  formdata.append('object_instance_id', objInstanceId);
+  formdata.append('object_id', objId);
+  formdata.append('is_order', false);
+  formdata.append('app_type', appType);
+  formdata.append('key_search', keySearch);
+  formdata.append('page_size', FilePageSize.IMAGE);
+  formdata.append('page', page);
+  const response = await doPostRequest('comment/file.do', formdata);
+  const fileList = response?.data?.fileList ?? [];
+  return fileList;
+};
+
 
 export const requestReactMessage = (id, react, eventType, user) => {
   const payloadEvent = getTypingPayload();

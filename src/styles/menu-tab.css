@@ -6,7 +6,14 @@
     right: 0;
     z-index: 1;
     background-color: white;
+}
+
+.menu-tab.open {
     overflow-y: scroll;
+}
+
+.menu-tab.hide {
+    overflow-y: hidden;
 }
 
 .menu-tab--header {
@@ -104,20 +111,24 @@
 }
 
 .menu-tab--listImageWrap {
-    border-top: 1px solid #EEF0F1;
     flex-wrap: wrap;
     padding-bottom: 10px;
+    padding-top: 5px;
 }
 
 .menu-tab--image {
-    width: 32.3%;
+    width: 31.3%;
     height: 130px;
-    margin-right: 0.5%;
-    margin-left: 0.5%;
+    margin-left: 1.2%;
     object-fit: cover;
     border-radius: 10px;
     margin-top: 3px;
     cursor: pointer;
+    border: 1px solid #cecece;
+
+    &:hover {
+        opacity: 0.8;
+    }
 }
 
 .menu-tab--listFileItem {
@@ -126,9 +137,55 @@
     padding-bottom: 10px;
     border-bottom: 1px solid #EEF0F1;
     cursor: pointer;
+    padding-left: 20px;
 
     span {
         font-size: 14px;
         margin-left: 10px;
+    }
+
+    &:hover {
+        background-color: #EEF0F1;
+    }
+}
+
+.menu-tab--allButton {
+    width: 150px;
+    display: flex;
+    justify-content: center;
+    padding: 12px 0px;
+    align-items: center;
+    background-color: #EEF0F1;
+    margin: 12px auto;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #e3e2e2;
+    }
+}
+
+.menu-tab--backIcon {
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    left: 0;
+    padding: 20px;
+    cursor: pointer;
+}
+
+.menu-tab--input-container {
+    display: flex;
+    background-color: white;
+    padding: 3px 15px;
+    border-radius: 5px;
+    align-items: center;
+    flex: 1;
+    border-bottom: 1px solid #EEF0F1;
+    img {
+      height: 20px !important;
+      width: 20px !important;
     }
 }
