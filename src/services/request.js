@@ -169,7 +169,8 @@ export const requestGetListMessage = async (lastId) => {
         for (const j in fileList) {
           let fileMessage = converObjectMessageFileData(
             listMessageResponse[i],
-            fileList[j]
+            fileList[j],
+            j
           );
           fileMessage.index = index;
           fileMessage.reply = convertMessageData(reply);

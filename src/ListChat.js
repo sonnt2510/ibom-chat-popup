@@ -61,7 +61,11 @@ class ListChat extends Component {
   }
 
   handleMessageListener(e, type) {
-    window.parent.postMessage('NEW MESSAGE', '*');
+    const currentUserId = getCurrentUserId();
+    const rawMessage = e.rawMessage;
+    if (currentUserId != rawMessage.created_by) {
+      window.parent.postMessage(rawMessage, '*');
+    }
     let spliceItem = {};
     let listMessage = [];
     const newMessage = e.newMessage;

@@ -111,12 +111,14 @@ class MenuTab extends Component {
             />
           ))}
         </div>
-        <div
-          onClick={() => this.setState({ screen: 'image' })}
-          className="menu-tab--allButton"
-        >
-          Xem tất cả
-        </div>
+        {list && list.length > 0 ? (
+          <div
+            onClick={() => this.setState({ screen: 'image' })}
+            className="menu-tab--allButton"
+          >
+            Xem tất cả
+          </div>
+        ) : <p className='menu-tab--emptyText'>Chưa có ảnh/video</p>}
       </Collapsible>
     );
   };
@@ -171,12 +173,14 @@ class MenuTab extends Component {
             </div>
           ))}
         </div>
-        <div
-          onClick={() => this.setState({ screen: 'file' })}
-          className="menu-tab--allButton"
-        >
-          Xem tất cả
-        </div>
+        {list && list.length > 0 ? (
+          <div
+            onClick={() => this.setState({ screen: 'image' })}
+            className="menu-tab--allButton"
+          >
+            Xem tất cả
+          </div>
+        ) : <p className='menu-tab--emptyText'>Chưa có file</p>}
       </Collapsible>
     );
   };

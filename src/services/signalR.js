@@ -103,6 +103,7 @@ export class ChatHubHelper {
           data.payload,
           userId
         );
+        newMessageEvent.rawMessage = data.payload;
         newMessageEvent.newMessage = isFromList ? data.payload : messages;
         document.dispatchEvent(newMessageEvent);
         break;

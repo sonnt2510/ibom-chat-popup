@@ -313,7 +313,6 @@
     padding: 20px;
     border-radius: 10px;
     width: 40vw;
-    background-color: #f4f7f9;
     margin: auto;
     margin-top: 20px;
     display: flex;
@@ -349,4 +348,16 @@
 .sc-message-alertTime {
   font-size: 14px;
   margin-left: 5px;
+}
+
+.sc-message--alertAvatar {
+  height: 35px;
+  width: 35px;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+
+.sc-message--headerWrap {
+  display: flex;
+  align-items: center;
 }

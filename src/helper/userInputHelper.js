@@ -6,8 +6,8 @@ export default class UserInputHelper {
   }
 
   static setText = (message) => {
-    UserInputHelper.userInput.focus();
     UserInputHelper.userInput.innerText = message;
-  
+    UserInputHelper.userInput.innerHTML = message;
+    UserInputHelper.userInput.focus();
   };
 }

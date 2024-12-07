@@ -36,6 +36,7 @@ export const convertObjectMessageData = (data) => {
     created_by,
     reply,
     comment_type,
+    bg_color
   } = data;
 
   const convertDate = moment(created_date_view, 'DD/MM/YYYY hh:mmA').format(
@@ -50,6 +51,7 @@ export const convertObjectMessageData = (data) => {
     reaction,
     reply,
     commentType: comment_type,
+    bgColor: bg_color,
     data: {
       name: user_created_name,
       text: comment_content,
@@ -60,7 +62,7 @@ export const convertObjectMessageData = (data) => {
   };
 };
 
-export const converObjectMessageFileData = (data, file) => {
+export const converObjectMessageFileData = (data, file, position) => {
   const { extension, file_path, file_name, file_id } = file;
   const {
     comment_id,
@@ -85,7 +87,7 @@ export const converObjectMessageFileData = (data, file) => {
     data: {
       name: user_created_name,
       type,
-      text: comment_content,
+      text: position == 0 ? comment_content : '',
       url: file_path,
       fileName: file_name,
       date: created_date_view,

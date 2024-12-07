@@ -5,7 +5,11 @@ import CloseIcon from '../assets/close-icon.png';
 import FileIcon from './icons/FileIcon';
 import { ChatHubHelper } from '../services/signalR';
 import UserInputHelper from '../helper/userInputHelper';
-import { setMessageId, setReplyObject, setTypeOfAction } from '../services/request';
+import {
+  setMessageId,
+  setReplyObject,
+  setTypeOfAction,
+} from '../services/request';
 import { ChatHelper } from '../helper/chatHelper';
 import EmojiIcon from './icons/EmojiIcon';
 import PopupWindow from './popups/PopupWindow';
@@ -29,7 +33,7 @@ class UserInput extends Component {
 
   componentDidMount() {
     document.addEventListener(
-      MessageEvent.EDIT_MESSAGE,
+      MessageEvent.EDIT_MY_MESSAGE,
       () => this.setState({ inputHasClose: true }),
       false
     );
@@ -53,6 +57,12 @@ class UserInput extends Component {
   }
 
   handleKeyUp(event) {
+    const innerHTML = event.target.innerHTML.replace('<br>', '');
+    if (innerHTML.length == 0) {
+      this.userInput.innerText = '';
+      this.userInput.innerHTML = '';
+    }
+
     const inputHasText =
       event.target.innerHTML.length !== 0 && event.target.innerText !== '\n';
     if (!inputHasText) {
@@ -95,7 +105,7 @@ class UserInput extends Component {
   }
 
   _renderSendOrFileIcon() {
-    const {replyObject} = this.state;
+    const { replyObject } = this.state;
     if (this.props.loading) {
       return null;
     }
@@ -124,7 +134,7 @@ class UserInput extends Component {
   onClickCloseEdit = () => {
     if (this.userInput) {
       this.userInput.blur();
-      this.userInput.innerHtml = '';
+      this.userInput.innerHTML = '';
       setMessageId('');
       this.setState({
         inputHasClose: false,
@@ -151,7 +161,7 @@ class UserInput extends Component {
 
   _handleEmojiPicked = (emoji) => {
     this.setState({ emojiPickerIsOpen: false });
-    this.userInput.innerHTML += emoji;
+    this.userInput.innerText += emoji;
     this.userInput.focus();
   };
 
@@ -235,6 +245,25 @@ class UserInput extends Component {
     );
   };
 
+  setEndOfContenteditable(contentEditableElement) {
+    var range, selection;
+    if (document.createRange) {
+      //Firefox, Chrome, Opera, Safari, IE 9+
+      range = document.createRange(); //Create a range (a range is a like the selection but invisible)
+      range.selectNodeContents(contentEditableElement); //Select the entire contents of the element with the range
+      range.collapse(false); //collapse the range to the end point. false means collapse to end rather than the start
+      selection = window.getSelection(); //get the selection object (allows you to change selection)
+      selection.removeAllRanges(); //remove any selections already made
+      selection.addRange(range); //make the range you have just created the visible selection
+    } else if (document.selection) {
+      //IE 8 and lower
+      range = document.body.createTextRange(); //Create a range (a range is a like the selection but invisible)
+      range.moveToElementText(contentEditableElement); //Select the entire contents of the element with the range
+      range.collapse(false); //collapse the range to the end point. false means collapse to end rather than the start
+      range.select(); //Select the range (make it the visible selection
+    }
+  }
+
   render() {
     const focusInputEvent = new CustomEvent('focus-input');
     if (!this.props.isAllowAddNew) return null;
@@ -248,7 +277,10 @@ class UserInput extends Component {
               role="input"
               tabIndex="0"
               multiple
+              id="el"
               onFocus={() => {
+                var element = document.getElementById('el');
+                this.setEndOfContenteditable(element);
                 this.setState({ inputActive: true });
                 document.dispatchEvent(focusInputEvent);
               }}

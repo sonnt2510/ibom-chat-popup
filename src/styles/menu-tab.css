@@ -189,3 +189,9 @@
       width: 20px !important;
     }
 }
+
+.menu-tab--emptyText {
+    text-align: center;
+    color: #aeaeae;
+    margin-top: 10px;
+}

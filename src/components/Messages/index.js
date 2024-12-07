@@ -40,14 +40,14 @@ class Message extends Component {
   }
   _renderMessageOfType(type) {
     switch (type) {
-    case 'text':
-      return <TextMessage {...this.props.message} />;
-    case 'file':
-      return <FileMessage {...this.props.message} />;
-    default:
-      console.error(
-        `Attempting to load message with unsupported file type '${type}'`
-      );
+      case 'text':
+        return <TextMessage {...this.props.message} />;
+      case 'file':
+        return <FileMessage {...this.props.message} />;
+      default:
+        console.error(
+          `Attempting to load message with unsupported file type '${type}'`
+        );
     }
   }
 
@@ -306,15 +306,30 @@ class Message extends Component {
   };
 
   renderAlertMessage = () => {
-    const { data } = this.props.message;
+    const { data, bgColor } = this.props.message;
     let dateText = getDateText(data.date);
     return (
-      <div className="sc-message--alertWrap">
-        <span className="sc-message--alertTitle">{data.name}</span>
+      <div
+        style={{ backgroundColor: bgColor }}
+        className="sc-message--alertWrap"
+      >
+        <div className="sc-message--headerWrap">
+          <img
+            src={
+              data.avatar
+                ? data.avatar
+                : 'https://pro.ibom.vn/images/nophoto.jpg'
+            }
+            className="sc-message--alertAvatar"
+          />
+          <span className="sc-message--alertTitle">{data.name}</span>
+        </div>
         <span className="sc-message--alertDescription">{data.text}</span>
         <div className="sc-message-alertTimeWrap">
           <img src={waitingIcon} className="sc-message-alertClockIcon" />
-          <span className="sc-message-alertTime">{dateText ? dateText : data.date}</span>
+          <span className="sc-message-alertTime">
+            {dateText ? dateText : data.date}
+          </span>
         </div>
       </div>
     );

@@ -14,6 +14,7 @@ import {
   getReplyObject,
   requestGetFiles,
   requestGetImages,
+  getCurrentUserId,
 } from './services/request';
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
@@ -110,7 +111,11 @@ class PopupChat extends Component {
   }
 
   handleNewMessageListener(e) {
-    window.parent.postMessage('NEW MESSAGE', '*');
+    const currentUserId = getCurrentUserId();
+    const rawMessage = e.rawMessage;
+    if (currentUserId != rawMessage.created_by) {
+      window.parent.postMessage(rawMessage, '*');
+    }
     setTypeOfAction(TypeOfAction.ADD);
 
     if (e.newMessage[0].type == 'file') {
