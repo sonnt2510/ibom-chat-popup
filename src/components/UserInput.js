@@ -6,6 +6,9 @@ import FileIcon from './icons/FileIcon';
 import { ChatHubHelper } from '../services/signalR';
 import UserInputHelper from '../helper/userInputHelper';
 import {
+  getListFiles,
+  getListFilesToDisplay,
+  setListFiles,
   setMessageId,
   setReplyObject,
   setTypeOfAction,
@@ -14,9 +17,10 @@ import { ChatHelper } from '../helper/chatHelper';
 import EmojiIcon from './icons/EmojiIcon';
 import PopupWindow from './popups/PopupWindow';
 import EmojiPicker from './emoji/EmojiPicker';
-import { MessageEvent } from '../utils/Constants';
+import { MessageEvent, GestureEvent } from '../utils/Constants';
 import quoteIcon from '../assets/icon-quote.png';
-import { mapFileIcon } from '../utils/Message';
+import { blobToData, mapFileIcon } from '../utils/Message';
+import trashIcon from '../assets/trash-icon.png';
 
 class UserInput extends Component {
   constructor() {
@@ -28,6 +32,7 @@ class UserInput extends Component {
       emojiPickerIsOpen: false,
       emojiFilter: '',
       replyObject: null,
+      files: [],
     };
   }
 
@@ -35,6 +40,15 @@ class UserInput extends Component {
     document.addEventListener(
       MessageEvent.EDIT_MY_MESSAGE,
       () => this.setState({ inputHasClose: true }),
+      false
+    );
+
+    document.addEventListener(
+      GestureEvent.DRAG_AND_DROP,
+      () => {
+        const totalFiles = getListFilesToDisplay();
+        this.setState({ files: totalFiles, inputHasText: true });
+      },
       false
     );
 
@@ -48,7 +62,46 @@ class UserInput extends Component {
     );
 
     this.chatWindow = document.querySelector('.sc-chat-window');
+
+    this.checkCopyFunction();
   }
+
+  checkCopyFunction = () => {
+    document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('paste', async (evt) => {
+        const clipboardItems = evt.clipboardData.items;
+
+        const items = [].slice.call(clipboardItems).filter((item) => {
+          return (
+            /^image\//.test(item.type) ||
+            /^application\//.test(item.type) ||
+            /^video\//.test(item.type)
+          );
+        });
+
+        if (items.length === 0) {
+          return;
+        }
+
+        for (const i in items) {
+          items[i] = items[i].getAsFile();
+        }
+
+        for (const i in items) {
+          const path = await blobToData(items[i]);
+          items[i].path = path;
+        }
+
+        //Save the data
+        const savedData = getListFiles();
+        setListFiles([...savedData, ...items]);
+
+        //New data
+        const newData = getListFilesToDisplay();
+        this.setState({ files: newData });
+      });
+    });
+  };
 
   handleKeyDown(event) {
     if (event.keyCode === 13 && !event.shiftKey) {
@@ -57,14 +110,18 @@ class UserInput extends Component {
   }
 
   handleKeyUp(event) {
-    const innerHTML = event.target.innerHTML.replace('<br>', '');
-    if (innerHTML.length == 0) {
+    const innerHTML =
+      event.target.innerHTML.replace('<br>', '').replace(/<img[^>]*>/g, '') ??
+      '';
+    if (!innerHTML || innerHTML.length == 0) {
       this.userInput.innerText = '';
       this.userInput.innerHTML = '';
     }
-
     const inputHasText =
-      event.target.innerHTML.length !== 0 && event.target.innerText !== '\n';
+      (innerHTML &&
+        innerHTML.length !== 0 &&
+        event.target.innerText !== '\n') ||
+      this.state.files.length;
     if (!inputHasText) {
       ChatHelper.sendTypingEvent('ended');
       ChatHubHelper.setTypingState('ended');
@@ -72,7 +129,6 @@ class UserInput extends Component {
       ChatHelper.sendTypingEvent('typing');
       ChatHubHelper.setTypingState('typing');
     }
-
     this.setState({ inputHasText });
   }
 
@@ -81,26 +137,26 @@ class UserInput extends Component {
   }
 
   _submitText(event) {
-    this.setState({ inputHasClose: false, replyObject: null });
+    this.setState({ inputHasClose: false, replyObject: null, files: [] });
     setTypeOfAction('');
     event.preventDefault();
     const text = this.userInput.innerText;
     text.replace('<br>', '\r');
-    if (text && text.length > 0) {
-      this.props.onSubmit({
-        author: 'me',
-        type: 'text',
-        data: { text },
-      });
-      this.userInput.innerHTML = '';
-      ChatHelper.sendTypingEvent('ended');
-      ChatHubHelper.setTypingState('ended');
-    }
+    this.props.onSubmit({
+      author: 'me',
+      type: 'text',
+      data: { text },
+    });
+    this.userInput.innerHTML = '';
+    ChatHelper.sendTypingEvent('ended');
+    ChatHubHelper.setTypingState('ended');
+    setListFiles([]);
   }
 
   _onFilesSelected(event) {
     if (event.target.files && event.target.files.length > 0) {
-      this.props.onFilesSelected(event.target.files[0]);
+      const items = [].slice.call(event.target.files);
+      this.props.onFilesSelected(items);
     }
   }
 
@@ -120,6 +176,7 @@ class UserInput extends Component {
       <div className="sc-user-input--button">
         <FileIcon onClick={this._showFilePicker.bind(this)} />
         <input
+          multiple
           type="file"
           // name="files[]"
           ref={(e) => {
@@ -248,26 +305,112 @@ class UserInput extends Component {
   setEndOfContenteditable(contentEditableElement) {
     var range, selection;
     if (document.createRange) {
-      //Firefox, Chrome, Opera, Safari, IE 9+
-      range = document.createRange(); //Create a range (a range is a like the selection but invisible)
-      range.selectNodeContents(contentEditableElement); //Select the entire contents of the element with the range
-      range.collapse(false); //collapse the range to the end point. false means collapse to end rather than the start
-      selection = window.getSelection(); //get the selection object (allows you to change selection)
-      selection.removeAllRanges(); //remove any selections already made
-      selection.addRange(range); //make the range you have just created the visible selection
+      range = document.createRange();
+      range.selectNodeContents(contentEditableElement);
+      range.collapse(false);
+      selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
     } else if (document.selection) {
-      //IE 8 and lower
-      range = document.body.createTextRange(); //Create a range (a range is a like the selection but invisible)
-      range.moveToElementText(contentEditableElement); //Select the entire contents of the element with the range
-      range.collapse(false); //collapse the range to the end point. false means collapse to end rather than the start
-      range.select(); //Select the range (make it the visible selection
+      range = document.body.createTextRange();
+      range.moveToElementText(contentEditableElement);
+      range.collapse(false);
+      range.select();
     }
   }
+
+  onHoverImage = (e, isHover) => {
+    const { files } = this.state;
+    for (const i in files) {
+      if (files[i].id == e.id) {
+        files[i].isHover = isHover;
+      }
+    }
+    this.setState({ files });
+  };
+
+  deleteFile = (e) => {
+    const { files } = this.state;
+    const index = files.findIndex((v) => v.id == e.id);
+    files.splice(index, 1);
+    setListFiles(files);
+    this.setState({ files });
+  };
+
+  onDeleteAll = () => {
+    this.setState({ files: [] });
+    setListFiles([]);
+  };
+
+  renderFileDrag = () => {
+    const { files } = this.state;
+    const listImage = files.filter((e) => e.type.includes('image'));
+    const listFiles = files.filter((e) => !e.type.includes('image'));
+    let title = [];
+    if (listImage.length) {
+      title.push(`${listImage.length} ảnh`);
+    }
+
+    if (listFiles.length) {
+      title.push(`${listFiles.length} file`);
+    }
+    return (
+      <div className="sc-user-input-files-container">
+        <div className="sc-user-input-files-header">
+          <span>{title.join(', ')}</span>
+          <div
+            onClick={() => this.onDeleteAll()}
+            className="sc-user-input-files-delete-button"
+          >
+            <span>Xoá tất cả</span>
+          </div>
+        </div>
+        <div className="sc-user-input-list-file">
+          {files.map((e) => {
+            const isImage = e.type.includes('image');
+            let icon = mapFileIcon(e.name);
+            return (
+              <div
+                onMouseLeave={() => this.onHoverImage(e, false)}
+                onMouseEnter={() => this.onHoverImage(e, true)}
+                className="sc-user-input-files-item"
+                key={e.id}
+              >
+                {e.isHover ? (
+                  <div
+                    onClick={() => this.deleteFile(e)}
+                    className="sc-user-input-files-hover"
+                  >
+                    <img
+                      src={trashIcon}
+                      className="sc-user-input-files-trash"
+                    />
+                  </div>
+                ) : null}
+                {isImage ? (
+                  <img
+                    className="sc-user-input-files-image"
+                    alt={e.path}
+                    src={e.path}
+                  />
+                ) : (
+                  <div className="sc-user-input-files-wrap">
+                    <img className="sc-user-input-files-icon" src={icon} />
+                    <span className="sc-user-input-files-name">{e.name}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   render() {
     const focusInputEvent = new CustomEvent('focus-input');
     if (!this.props.isAllowAddNew) return null;
-    const { inputActive, inputHasClose, emojiPickerIsOpen } = this.state;
+    const { inputActive, inputHasClose, emojiPickerIsOpen, files } = this.state;
     return (
       <div>
         {this.renderReplySection()}
@@ -324,6 +467,7 @@ class UserInput extends Component {
             </div>
           </div>
         </form>
+        {files && files.length ? this.renderFileDrag() : null}
       </div>
     );
   }

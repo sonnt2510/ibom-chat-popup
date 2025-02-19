@@ -6,6 +6,7 @@ import copyIcon from '../../assets/copy-icon.png';
 import quoteIcon from '../../assets/icon-quote.png';
 import editIcon from '../../assets/edit-icon.png';
 import trashIcon from '../../assets/trash-icon.png';
+import forwardIcon from '../../assets/forward-icon.png';
 import verticalDot from '../../assets/vertical_dot.png';
 import likeIcon from '../../assets/icon_like.png';
 import Popup from 'reactjs-popup';
@@ -40,14 +41,14 @@ class Message extends Component {
   }
   _renderMessageOfType(type) {
     switch (type) {
-      case 'text':
-        return <TextMessage {...this.props.message} />;
-      case 'file':
-        return <FileMessage {...this.props.message} />;
-      default:
-        console.error(
-          `Attempting to load message with unsupported file type '${type}'`
-        );
+    case 'text':
+      return <TextMessage {...this.props.message} />;
+    case 'file':
+      return <FileMessage {...this.props.message} />;
+    default:
+      console.error(
+        `Attempting to load message with unsupported file type '${type}'`
+      );
     }
   }
 
@@ -103,16 +104,24 @@ class Message extends Component {
         >
           <div style={{ paddingLeft: 5, paddingRight: 5 }}>
             <div
-              style={{
-                borderBottomWidth: type !== 'text' ? 0 : 1,
-              }}
+              onClick={() => this.onOptionClick('foward')}
+              className="sc-message-option-wrap"
+            >
+              <img
+                src={forwardIcon}
+                className="sc-message-option-icon"
+                alt="forward"
+              />
+              <span>Chia sẻ</span>
+            </div>
+            <div
               onClick={() => this.onOptionClick('reply')}
               className="sc-message-option-wrap"
             >
               <img
                 src={quoteIcon}
                 className="sc-message-option-icon"
-                alt="foward"
+                alt="reply"
               />
               <span>Trả lời</span>
             </div>
@@ -263,9 +272,19 @@ class Message extends Component {
     const userId = getCurrentUserId();
     const { id } = this.props.message;
     const length = reaction && reaction.length;
+    let filteredReaction = reaction;
+    if (length > 0) {
+      filteredReaction = reaction.filter(function (el) {
+        if (!this[el.react]) {
+          this[el.react] = true;
+          return true;
+        }
+        return false;
+      }, Object.create(null));
+    }
     if (!reaction || length == 0) return;
-    const marginWidth = length * 8;
-    const marginLeft = 60 + length * marginWidth;
+    const marginWidth = filteredReaction.length * 8;
+    const marginLeft = 60 + filteredReaction.length * marginWidth;
     return (
       <div style={{ display: 'flex' }}>
         <div
@@ -275,7 +294,7 @@ class Message extends Component {
           style={{ marginLeft: -marginLeft }}
           className="sc-message--messageReactionWrap"
         >
-          {reaction.slice(0, 2).map((e) => {
+          {filteredReaction.slice(0, 3).map((e) => {
             return (
               <span style={{ marginRight: 3 }} key={e.reactionId}>
                 {mapReactWithReactId(e.react)}

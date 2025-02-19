@@ -6,6 +6,7 @@ export const MessageEvent = {
   USER_TYPING: 'user-typing',
   REPLY_MESSAGE: 'reply-message',
   REACT_MESSAGE: 'reaction',
+  FOWARD_MESSAGE: 'foward-message'
 };
 
 export const ReactValue = {
@@ -41,5 +42,10 @@ export const ScrollEvent = {
 export const FilePageSize = {
   IMAGE: 12,
   FILES: 10
+};
+
+export const GestureEvent = {
+  DRAG_AND_DROP: 'drag_and_drop',
+  CLICK_IMAGE: 'click_image'
 };
 

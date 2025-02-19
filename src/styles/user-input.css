@@ -193,4 +193,5 @@
   width: 120px;
   border-radius: 5px;
   margin-top: 10px;
+  object-fit: cover;
 }

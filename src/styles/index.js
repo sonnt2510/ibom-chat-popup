@@ -10,3 +10,5 @@ import './filter-option.css';
 import './filter-list.css';
 import './reaction-modal.css';
 import './menu-tab.css';
+import './preview.css';
+import './foward.css';

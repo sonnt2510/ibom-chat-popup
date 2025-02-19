@@ -14,14 +14,20 @@ import {
   getReplyObject,
   requestGetFiles,
   requestGetImages,
-  getCurrentUserId,
+  getListFiles,
+  setListFiles,
 } from './services/request';
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
+import fileIcon from './assets/file-icon.png';
 import ChatWindow from './components/ChatWindow';
-import { MessageEvent, TypeOfAction } from './utils/Constants';
+import { GestureEvent, MessageEvent, TypeOfAction } from './utils/Constants';
+import { blobToData } from './utils/Message';
+import PreviewImageSection from './PreviewImageSection';
+import ListFowardSection from './ListForwardSection';
 
 class PopupChat extends Component {
+  dragCounter;
   constructor() {
     super();
     this.state = {
@@ -35,6 +41,7 @@ class PopupChat extends Component {
       url: '',
       canLoadMore: true,
       fileList: [],
+      dragging: false,
     };
   }
 
@@ -69,11 +76,74 @@ class PopupChat extends Component {
     }
   }
 
+  handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  handleDragIn = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    this.dragCounter++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      this.setState({ dragging: true });
+    }
+  };
+
+  handleDragOut = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    this.dragCounter--;
+    if (this.dragCounter > 0) return;
+    this.setState({ dragging: false });
+  };
+
+  handleDrop = async (e) => {
+    const dragAndDrop = new CustomEvent(GestureEvent.DRAG_AND_DROP);
+    var files = Array.from(e.dataTransfer.files);
+    e.preventDefault();
+    e.stopPropagation();
+
+    this.setState({ dragging: false });
+    if (files && files.length > 0) {
+      for (const i in files) {
+        files[i].path = await blobToData(files[i]);
+      }
+      const getFiles = getListFiles();
+      const combineList = [...getFiles, ...files];
+      if (combineList.length > 7) {
+        alert('Tối đa 7 ảnh/files');
+        return;
+      }
+      setListFiles(combineList);
+      document.dispatchEvent(dragAndDrop);
+      e.dataTransfer.clearData();
+      this.dragCounter = 0;
+    }
+  };
+
   componentDidMount() {
     moment.locale('en');
     setTimeout(() => {
       this.setupData();
     }, 300);
+
+    if (this.dropRef) {
+      this.dragCounter = 0;
+      let div = this.dropRef;
+      div.addEventListener('dragenter', this.handleDragIn);
+      div.addEventListener('dragleave', this.handleDragOut);
+      div.addEventListener('dragover', this.handleDrag);
+      div.addEventListener('drop', this.handleDrop);
+    }
+  }
+
+  componentWillUnmount() {
+    let div = this.dropRef;
+    div.removeEventListener('dragenter', this.handleDragIn);
+    div.removeEventListener('dragleave', this.handleDragOut);
+    div.removeEventListener('dragover', this.handleDrag);
+    div.removeEventListener('drop', this.handleDrop);
   }
 
   handleReactMessageListener(e) {
@@ -111,11 +181,12 @@ class PopupChat extends Component {
   }
 
   handleNewMessageListener(e) {
-    const currentUserId = getCurrentUserId();
-    const rawMessage = e.rawMessage;
-    if (currentUserId != rawMessage.created_by) {
-      window.parent.postMessage(rawMessage, '*');
-    }
+    // const currentUserId = getCurrentUserId();
+    // const rawMessage = e.rawMessage;
+    // if (currentUserId != rawMessage.created_by) {
+    //   window.parent.postMessage(rawMessage, '*');
+    // }
+    window.parent.postMessage('NEW_MESSAGE', '*');
     setTypeOfAction(TypeOfAction.ADD);
 
     if (e.newMessage[0].type == 'file') {
@@ -203,21 +274,26 @@ class PopupChat extends Component {
         );
       });
     } else {
-      let replyObject = getReplyObject();
-      setTypeOfAction(TypeOfAction.ADD);
-      const index = messageList.length + 1;
-      message.id = null;
-      message.index = index;
-      message.data.date = moment().format('DD/MM/YYYY hh:mmA');
-      message.reply = replyObject;
-      this.setState(
-        {
-          messageList: [...messageList, message],
-        },
-        () => {
-          this._mapIdAfterResponse(message.data.text, index);
-        }
-      );
+      const messageText = message.data.text;
+      const listFiles = getListFiles();
+      if (messageText && messageText.length) {
+        let replyObject = getReplyObject();
+        setTypeOfAction(TypeOfAction.ADD);
+        const index = messageList.length + 1;
+        message.id = null;
+        message.index = index;
+        message.data.date = moment().format('DD/MM/YYYY hh:mmA');
+        message.reply = replyObject;
+        this.setState(
+          {
+            messageList: messageList.push(message)
+          },
+          () => {
+            this._mapIdAfterResponse(message.data.text, index);
+          }
+        );
+      }
+      this._onFilesSelected(listFiles);
     }
   }
 
@@ -240,54 +316,60 @@ class PopupChat extends Component {
       const id = response.commentId || propsId;
       const listAssign = Object.assign([], this.state.messageList);
       const findIndex = listAssign.findIndex((e) => e.index === index);
-      listAssign[findIndex].id = id;
-      listAssign[findIndex].isAllowEdit = response.isAllowEdit == 1;
-      listAssign[findIndex].isAllowDelete = response.isAllowEdit == 1;
-      this.setState({ messageList: listAssign });
-      setMessageId('');
-
-      if (fileList && fileList.length > 0) {
-        this.setState({ fileList: [...fileList, ...this.state.fileList] });
-        listAssign[findIndex].fileId = fileList[0].file_id;
+      if (findIndex > 0) {
+        listAssign[findIndex].id = id;
+        listAssign[findIndex].isAllowEdit = response.isAllowEdit == 1;
+        listAssign[findIndex].isAllowDelete = response.isAllowEdit == 1;
+        this.setState({ messageList: listAssign });
+        setMessageId('');
+        if (fileList && fileList.length > 0) {
+          this.setState({ fileList: [...fileList, ...this.state.fileList] });
+          listAssign[findIndex].fileId = fileList[0].file_id;
+        }
       }
     }
   };
 
   _onFilesSelected(fileList) {
-    const fileType = fileList.type.includes('image') ? 'image' : 'file';
-    const index = this.state.messageList.length + 1;
-    const objFile = {
-      id: null,
-      index,
-      type: 'file',
-      author: 'me',
-      data: {
-        url: window.URL.createObjectURL(fileList),
-        fileName: fileList.name,
-        date: moment().format('DD/MM/YYYY hh:mmA'),
-        type: fileType,
-      },
-    };
+    const currentLength = this.state.messageList.length;
+    const arrayFile = [];
+    for (const i in fileList) {
+      const fileType = fileList[i].type.includes('image') ? 'image' : 'file';
+      const index = currentLength + i + 1;
+      const objFile = {
+        id: null,
+        index,
+        type: 'file',
+        author: 'me',
+        data: {
+          url: window.URL.createObjectURL(fileList[i]),
+          fileName: fileList[i].name,
+          date: moment().format('DD/MM/YYYY hh:mmA'),
+          type: fileType,
+        },
+      };
+      arrayFile.push(objFile);
+    }
+
     this.setState(
       {
-        messageList: [...this.state.messageList, objFile],
+        messageList: [...this.state.messageList, ...arrayFile],
       },
       () => {
-        this._mapIdAfterResponse('', index, '', fileList);
+        const reverse = fileList.reverse();
+        for (const i in reverse) {
+          this._mapIdAfterResponse('', currentLength + i + 1, '', reverse[i]);
+        }
       }
     );
   }
 
   async copyToClipboard(textToCopy) {
-    // Navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(textToCopy);
     } else {
-      // Use the 'out of viewport hidden text area' trick
       const textArea = document.createElement('textarea');
       textArea.value = textToCopy;
-
-      // Move textarea out of the viewport so it's not visible
       textArea.style.position = 'absolute';
       textArea.style.left = '-999999px';
 
@@ -324,6 +406,10 @@ class PopupChat extends Component {
       const replyObject = message;
       replyEvent.replyObject = replyObject;
       document.dispatchEvent(replyEvent);
+    } else if (type === 'foward') {
+      const fowardMessage = new CustomEvent(MessageEvent.FOWARD_MESSAGE);
+      fowardMessage.message = message;
+      document.dispatchEvent(fowardMessage);
     }
   };
 
@@ -365,6 +451,17 @@ class PopupChat extends Component {
     }
   };
 
+  dragAndDropSection = () => {
+    return (
+      <div className="drag-box">
+        <div className="drag-content-box">
+          <img src={fileIcon} alt="fileIcon" className="drag-file-icon" />
+          <span>Kéo thả ảnh/file để gửi</span>
+        </div>
+      </div>
+    );
+  };
+
   render() {
     const {
       roomName,
@@ -375,6 +472,7 @@ class PopupChat extends Component {
       isAllowAttach,
       url,
       fileList,
+      dragging,
     } = this.state;
     const listMessagesParse = JSON.parse(JSON.stringify(messageList));
 
@@ -405,29 +503,38 @@ class PopupChat extends Component {
         }
       }
     }
-
+   
     return (
-      <ChatWindow
-        fileList={fileList}
-        isLoadMore={isLoadMore}
-        onLoadMore={this.onLoadMore}
-        optionClick={this.optionClick}
-        loading={loading}
-        profile={{
-          roomName,
-          url,
-          isDetail: this.props.isDetail,
+      <div
+        ref={(e) => {
+          this.dropRef = e;
         }}
-        onMessageWasSent={this._onMessageWasSent.bind(this)}
-        onFilesSelected={this._onFilesSelected.bind(this)}
-        messageList={listMessagesParse}
-        isOpen={true}
-        onClose={() => {
-          window.parent.postMessage('CLOSE', '*');
-        }}
-        isAllowAddNew={isAllowAddNew}
-        isAllowAttach={isAllowAttach}
-      />
+      >
+        {dragging ? this.dragAndDropSection() : null}
+        <PreviewImageSection defaultListImage={this.state.messageList} />
+        <ListFowardSection />
+        <ChatWindow
+          fileList={fileList}
+          isLoadMore={isLoadMore}
+          onLoadMore={this.onLoadMore}
+          optionClick={this.optionClick}
+          loading={loading}
+          profile={{
+            roomName,
+            url,
+            isDetail: this.props.isDetail,
+          }}
+          onMessageWasSent={this._onMessageWasSent.bind(this)}
+          onFilesSelected={this._onFilesSelected.bind(this)}
+          messageList={listMessagesParse}
+          isOpen={true}
+          onClose={() => {
+            window.parent.postMessage('CLOSE', '*');
+          }}
+          isAllowAddNew={isAllowAddNew}
+          isAllowAttach={isAllowAttach}
+        />
+      </div>
     );
   }
 }

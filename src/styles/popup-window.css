@@ -68,3 +68,38 @@
   padding-right: 0px !important;
   width: 180px !important;
 }
+
+.drag-box {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: rgba(0,0,0,0.7);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.drag-content-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px;
+  border-radius: 12px;
+  border: 2px dashed white;
+  flex-direction: column;
+
+  span {
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+  }
+}
+
+.drag-file-icon {
+  height: 40px;
+  width: 40px;
+  margin-bottom: 20px;
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7500%) hue-rotate(145deg) brightness(101%) contrast(100%);
+}

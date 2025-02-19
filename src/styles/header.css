@@ -70,3 +70,67 @@
 .sc-header--menuImage.inactive {
   filter: brightness(0) saturate(100%)
 }
+
+.sc-header--search-container {
+  padding: 10px;
+  background-color: #EEF0F1;
+}
+
+.sc-header--search-input {
+  border: none; 
+  background-color: transparent;
+  width: 100%;
+  margin-left: 10px;
+  
+  &:focus {
+    outline: none;
+  }
+}
+
+.sc-header--search-wrap {
+  border: 1px solid #cecece;
+  padding: 0 0 0 15px;
+  border-radius: 8px;
+  display: flex;
+  height: 38px;
+  align-items: center;
+}
+
+.sc-header--search-icon {
+  height: 15px;
+  width: 15px;
+  margin-top: -2px;
+}
+
+.sc-header--option-wrap {
+  font-size: 14px;
+  border-left: 1px solid #cecece;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 10px;
+}
+
+.sc-header--option-arrow-up {
+  height: 18px;
+  width: 18px;
+  padding: 0px 7px;
+  filter: brightness(0) saturate(100%);
+}
+
+.sc-header--option-cancel-button {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover {
+    background-color: #dedede;
+  }
+}
+
+.sc-header--option-number {
+  margin: 0 10px;
+}

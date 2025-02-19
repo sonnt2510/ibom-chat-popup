@@ -3,6 +3,7 @@ import ExcelIcon from '../assets/icon_excel.png';
 import PDFIcon from '../assets/icon_pdf.png';
 import WordIcon from '../assets/icon_word.png';
 import ZipIcon from '../assets/icon_zip.png';
+import VideoIcon from '../assets/video-icon.png';
 import moment from 'moment';
 import imageExtensions from '../image-extensions.json';
 
@@ -17,6 +18,8 @@ export const mapFileIcon = (fileName) => {
       icon = WordIcon;
     } else if (fileName.includes('.zip')) {
       icon = ZipIcon;
+    } else if (fileName.includes('mp4') || fileName.includes('webp')) {
+      icon = VideoIcon;
     }
   }
   return icon;
@@ -126,4 +129,12 @@ export const getDateText = (fullDateMessage) => {
   }
 
   return '';
+};
+
+export const blobToData = (blob) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
 };

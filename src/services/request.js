@@ -18,6 +18,7 @@ let messageId = '';
 let typeOfAction = 'get';
 let sessionId = '';
 let replyObject = null;
+let listFiles = [];
 
 export const setPayloadDefault = (instanceId, oId, user, username, apptype) => {
   objInstanceId = Number(instanceId);
@@ -129,6 +130,22 @@ export const requestGetSetting = async () => {
   };
 };
 
+export const requestFowardMessage = async (refObject) => {
+  let formdata = new FormData();
+  formdata.append('object_instance_id', objInstanceId);
+  formdata.append('object_id', objId);
+  formdata.append('app_type', appType);
+  formdata.append('ref_object_id', refObject.objectId);
+  formdata.append('ref_object_instance_id', refObject.objInstanceId);
+  formdata.append('ref_comment_id', refObject.commentId);
+  const response = await doPostRequest('comment/forward.do', formdata);
+  let reponseObject = {};
+  if (response.data.result === 'success') {
+    reponseObject = response.data.commentInfo;
+  }
+  return reponseObject;
+};
+
 const convertMessageData = (data) => {
   if (!data) return;
   let objectMessage = {};
@@ -164,7 +181,11 @@ export const requestGetListMessage = async (lastId) => {
       let objMessage = convertMessageData(listMessageResponse[i]);
       objMessage.index = index;
       objMessage.reply = convertMessageData(reply);
-
+      index++;
+      if (objMessage.data.text) {
+        index++;
+        messageList.push(objMessage);
+      }
       if (fileList && fileList.length) {
         for (const j in fileList) {
           let fileMessage = converObjectMessageFileData(
@@ -176,11 +197,6 @@ export const requestGetListMessage = async (lastId) => {
           fileMessage.reply = convertMessageData(reply);
           messageList.push(fileMessage);
           index++;
-        }
-      } else {
-        if (objMessage.data.text) {
-          index++;
-          messageList.push(objMessage);
         }
       }
     }
@@ -282,7 +298,6 @@ export const requestGetImages = async (keySearch, page = 1) => {
   return fileList;
 };
 
-
 export const requestReactMessage = (id, react, eventType, user) => {
   const payloadEvent = getTypingPayload();
   (payloadEvent.reactionData = {
@@ -291,7 +306,7 @@ export const requestReactMessage = (id, react, eventType, user) => {
     objectId: objId,
     objectInstanceId: objInstanceId,
   }),
-  (payloadEvent.actType = eventType);
+    (payloadEvent.actType = eventType);
   payloadEvent.user = {
     id: user.userId,
     fullname: user.name,
@@ -367,4 +382,30 @@ export const getCurrentUserName = () => {
 
 export const getUserListInfo = () => {
   return userListInfo;
+};
+
+export const getListFiles = () => {
+  return listFiles;
+};
+
+export const setListFiles = (data) => {
+  listFiles = data;
+};
+
+export const getListFilesToDisplay = () => {
+  const newArray = [];
+  for (const i in listFiles) {
+    const id = Math.random()
+      .toString(36)
+      .replace(/[^a-z]+/g, '')
+      .substr(2, 10);
+    const { path, name, type } = listFiles[i];
+    newArray.push({
+      id,
+      path,
+      name,
+      type,
+    });
+  }
+  return newArray;
 };

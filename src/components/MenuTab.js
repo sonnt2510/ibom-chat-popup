@@ -9,6 +9,7 @@ import Collapsible from 'react-collapsible';
 import imageExtensions from '../image-extensions.json';
 import { mapFileIcon } from '../utils/Message';
 import ListFile from './ListFile';
+import { GestureEvent } from '../utils/Constants';
 
 class MenuTab extends Component {
   constructor() {
@@ -54,10 +55,10 @@ class MenuTab extends Component {
           {userList &&
             userList.map((e) => {
               return (
-                <div className="menu-tab--memberItemWrap" key={e.avatar}>
+                <div className="menu-tab--memberItemWrap" key={e.user_id}>
                   <img
                     alt={e.avatar}
-                    src={e.avatar}
+                    src={e.user_id}
                     className="menu-tab--avatar"
                   />
                   <span>{e.full_name}</span>
@@ -104,7 +105,11 @@ class MenuTab extends Component {
             <img
               key={e.file_path}
               onClick={() => {
-                window.open(e.file_path, '_blank', 'noreferrer');
+                const event = new CustomEvent(GestureEvent.CLICK_IMAGE);
+                event.listImage = list;
+                event.imageType = 'image';
+                event.imageUrl = e.file_path;
+                document.dispatchEvent(event);
               }}
               className="menu-tab--image"
               src={e.file_path}

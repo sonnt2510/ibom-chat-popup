@@ -3,7 +3,7 @@ import arrowLeft from './../assets/arrow-left.png';
 import loadingGif from './../assets/loading.gif';
 import { requestGetFiles, requestGetImages } from '../services/request';
 import { mapFileIcon } from '../utils/Message';
-import { FilePageSize, ScrollEvent } from '../utils/Constants';
+import { FilePageSize, GestureEvent, ScrollEvent } from '../utils/Constants';
 import searchIcon from './../assets/icon-search.png';
 import _debounce from 'lodash/debounce';
 
@@ -95,7 +95,11 @@ class ListFile extends Component {
           <img
             key={e.file_path}
             onClick={() => {
-              window.open(e.file_path, '_blank', 'noreferrer');
+              const event = new CustomEvent(GestureEvent.CLICK_IMAGE);
+              event.listImage = list;
+              event.imageType = 'image';
+              event.imageUrl = e.file_path;
+              document.dispatchEvent(event);
             }}
             className="menu-tab--image"
             src={e.file_path}

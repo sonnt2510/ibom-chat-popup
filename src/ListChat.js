@@ -61,11 +61,12 @@ class ListChat extends Component {
   }
 
   handleMessageListener(e, type) {
-    const currentUserId = getCurrentUserId();
-    const rawMessage = e.rawMessage;
-    if (currentUserId != rawMessage.created_by) {
-      window.parent.postMessage(rawMessage, '*');
-    }
+    // const currentUserId = getCurrentUserId();
+    // const rawMessage = e.rawMessage;
+    // if (currentUserId != rawMessage.created_by) {
+    //   window.parent.postMessage(rawMessage, '*');
+    // }
+    window.parent.postMessage('NEW_MESSAGE', '*');
     let spliceItem = {};
     let listMessage = [];
     const newMessage = e.newMessage;
@@ -73,7 +74,8 @@ class ListChat extends Component {
     const index = list.findIndex(
       (e) =>
         e.object_id == (newMessage.object_id || newMessage.objectId) &&
-        e.object_instance_id == (newMessage.object_instance_id || newMessage.objectInstanceId)
+        e.object_instance_id ==
+          (newMessage.object_instance_id || newMessage.objectInstanceId)
     );
     if (index >= 0) {
       if (type === 'add') {
@@ -201,15 +203,17 @@ class ListChat extends Component {
               className="list-chat-item-avatar"
             />
           </div>
-          <span
-            style={{
-              fontWeight: isRead == 0 ? '600' : '500',
-              color: isRead == 0 ? 'black' : '#636363',
-            }}
-            className="list-chat-item-description"
-          >
-            {content}
-          </span>
+          <div className="list-chat-item-description-wrap">
+            <span
+              style={{
+                fontWeight: isRead == 0 ? '600' : '500',
+                color: isRead == 0 ? 'black' : '#636363',
+              }}
+              className="list-chat-item-description"
+            >
+              {content}
+            </span>
+          </div>
         </div>
         <span className="list-chat-item-date">{date}</span>
       </div>
@@ -267,7 +271,7 @@ class ListChat extends Component {
         />
       );
     return (
-      <div onScroll={this.handleScroll} className="list-chat-container">
+      <div className="list-chat-container">
         <div className="list-chat-header">
           <div className="list-chat-input-container">
             <img
@@ -306,7 +310,7 @@ class ListChat extends Component {
             />
           </div>
         ) : messageList && messageList.length > 0 ? (
-          <div style={{ paddingTop: 54 }}>
+          <div onScroll={this.handleScroll} className="sc-message-list-wrap">
             {messageList.map((e, i) => {
               return this.renderItem(e, i);
             })}

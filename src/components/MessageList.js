@@ -49,6 +49,7 @@ class MessageList extends Component {
     for (const i in listMessage) {
       listMessage[i].isOpenOption = i == index;
     }
+  
     this.setState({ listMessage });
   };
 

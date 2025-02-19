@@ -1,0 +1,142 @@
+.foward-container {
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    z-index: 9999;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.foward-wrap {
+    height: 95vh;
+    width: 95vw;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(236, 236, 236);
+    border-radius: 10px;
+}
+
+.foward-header { 
+    background-color: white;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border: 1px solid #cecece;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 15px;
+}
+
+.foward-title {
+    font-size: 16px;
+    color: black;
+}
+
+.foward-search-input {
+    border: none; 
+    background-color: transparent;
+    width: 100%;
+    margin-left: 10px;
+    height: 38px;
+    
+    &:focus {
+      outline: none;
+    }
+}
+
+.foward-search-icon {
+    height: 15px;
+    width: 15px;
+    margin-top: -2px;
+    filter: brightness(0) saturate(100%)
+}
+
+.foward-search-wrap {
+    border: 1px solid #cecece;
+    padding: 0 0 0 15px;
+    border-radius: 8px;
+    display: flex;
+    height: 38px;
+    align-items: center;
+    margin: 10px 15px;
+    background-color: white;
+}
+
+.foward-list-body {
+    border: 1px solid #cecece;
+    border-radius: 8px;
+    margin: 10px 15px;
+    height: 74vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+    background-color: white;
+}
+
+.foward-body {
+    height: 95vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.foward-bottom {
+    display: flex;
+    margin-top: 10px;
+    margin-right: 15px;
+    align-self: flex-end;
+    margin-bottom: 70px;
+}
+
+.foward-button-cancel {
+    padding: 8px 27px;
+    color: white;
+    background-color: #cecece;
+    border-radius: 6px;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.foward-button-share {
+    padding: 8px 27px;
+    color: white;
+    background-color: #46C176;
+    border-radius: 6px;
+}
+
+.foward-message-section {
+    border: 1px solid #cecece;
+    border-radius: 8px;
+    margin: 10px 15px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+.foward-message {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.foward-image {
+    height: 100px;
+    width: 100px;
+    object-fit: cover;
+    margin-top: 10px;
+    border-radius: 8px;
+}
+
+.foward-error {
+    color: red;
+    font-size: 13px;
+    align-self: flex-end;
+    font-weight: 500;
+    margin-right: 15px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
