@@ -57,8 +57,8 @@ class MenuTab extends Component {
               return (
                 <div className="menu-tab--memberItemWrap" key={e.user_id}>
                   <img
-                    alt={e.avatar}
-                    src={e.user_id}
+                    alt={e.user_id}
+                    src={e.avatar}
                     className="menu-tab--avatar"
                   />
                   <span>{e.full_name}</span>

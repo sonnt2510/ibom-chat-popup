@@ -7,7 +7,7 @@ export class ChatHelper {
     let payloadData = getTypingPayload();
     payloadData.typingState = typingState;
     if (ChatHubHelper.getTypingState() !== typingState) {
-      ChatHubHelper.sendMessageToUsers(getUserIds(), {
+      ChatHubHelper.sendMessageToUsersSocket(getUserIds(), {
         event: MessageEvent.USER_TYPING,
         sentDeviceUID: getSessionId(),
         payload: payloadData
@@ -21,7 +21,7 @@ export class ChatHelper {
     payloadData.comment_id = messageId;
     payloadData.allow_del = allowDel;
     payloadData.allow_edit = allowEdit;
-    ChatHubHelper.sendMessageToUsers(getUserIds(), {
+    ChatHubHelper.sendMessageToUsersSocket(getUserIds(), {
       event: MessageEvent.EDIT_MESSAGE,
       payload: payloadData,
       sentDeviceUID: getSessionId(),
@@ -30,7 +30,7 @@ export class ChatHelper {
   };
 
   static sendDeleteMessageEvent = (payload) => {
-    ChatHubHelper.sendMessageToUsers(getUserIds(), {
+    ChatHubHelper.sendMessageToUsersSocket(getUserIds(), {
       event: MessageEvent.DELETE_MESSAGE,
       payload,
       sentDeviceUID: getSessionId(),
@@ -39,7 +39,7 @@ export class ChatHelper {
   };
 
   static sendNewMessageEvent = (payload) => {
-    ChatHubHelper.sendMessageToUsers(getUserIds(), {
+    ChatHubHelper.sendMessageToUsersSocket(getUserIds(), {
       event: MessageEvent.NEW_MESSAGES,
       payload,
       sentDeviceUID: getSessionId(),
@@ -48,7 +48,7 @@ export class ChatHelper {
   };
 
   static sendReactMessageEvent = (payload) => {
-    ChatHubHelper.sendMessageToUsers(getUserIds(), {
+    ChatHubHelper.sendMessageToUsersSocket(getUserIds(), {
       event: MessageEvent.REACT_MESSAGE,
       payload,
       sentDeviceUID: getSessionId(),

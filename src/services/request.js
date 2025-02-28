@@ -146,6 +146,20 @@ export const requestFowardMessage = async (refObject) => {
   return reponseObject;
 };
 
+export const requestSearchComment = async (keySearch) => {
+  let formdata = new FormData();
+  formdata.append('object_instance_id', objInstanceId);
+  formdata.append('object_id', objId);
+  formdata.append('app_type', appType);
+  formdata.append('key_search', keySearch);
+  const response = await doPostRequest('comment/search.do', formdata);
+  let reponseObject = {};
+  if (response.data.result === 'success') {
+    console.log('asdas', response)
+  }
+  return reponseObject;
+};
+
 const convertMessageData = (data) => {
   if (!data) return;
   let objectMessage = {};

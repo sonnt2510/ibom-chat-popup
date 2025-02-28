@@ -16,6 +16,7 @@ import {
   requestGetImages,
   getListFiles,
   setListFiles,
+  requestSearchComment,
 } from './services/request';
 import { ChatHubHelper } from './services/signalR';
 import UserInputHelper from './helper/userInputHelper';
@@ -25,6 +26,7 @@ import { GestureEvent, MessageEvent, TypeOfAction } from './utils/Constants';
 import { blobToData } from './utils/Message';
 import PreviewImageSection from './PreviewImageSection';
 import ListFowardSection from './ListForwardSection';
+import { SocketHelper } from './services/socketio';
 
 class PopupChat extends Component {
   dragCounter;
@@ -249,7 +251,7 @@ class PopupChat extends Component {
 
   async _getListMessage() {
     const response = await requestGetListMessage();
-    ChatHubHelper.startConnection(this.props.userId);
+    ChatHubHelper.startConnectionSocket(this.props.userId);
     this.setState({
       messageList: response ? response.list : [],
       loading: false,
@@ -279,14 +281,15 @@ class PopupChat extends Component {
       if (messageText && messageText.length) {
         let replyObject = getReplyObject();
         setTypeOfAction(TypeOfAction.ADD);
-        const index = messageList.length + 1;
+        const lastItem = messageList && messageList.length ? messageList[messageList.length - 1] : 0;
+        const index = lastItem.index + 1;
         message.id = null;
         message.index = index;
         message.data.date = moment().format('DD/MM/YYYY hh:mmA');
         message.reply = replyObject;
         this.setState(
           {
-            messageList: messageList.push(message)
+            messageList: messageList.push(message),
           },
           () => {
             this._mapIdAfterResponse(message.data.text, index);
@@ -314,19 +317,21 @@ class PopupChat extends Component {
     if (response.isSuccess) {
       const fileList = response.commentInfo.fileList;
       const id = response.commentId || propsId;
-      const listAssign = Object.assign([], this.state.messageList);
-      const findIndex = listAssign.findIndex((e) => e.index === index);
-      if (findIndex > 0) {
-        listAssign[findIndex].id = id;
-        listAssign[findIndex].isAllowEdit = response.isAllowEdit == 1;
-        listAssign[findIndex].isAllowDelete = response.isAllowEdit == 1;
-        this.setState({ messageList: listAssign });
-        setMessageId('');
-        if (fileList && fileList.length > 0) {
-          this.setState({ fileList: [...fileList, ...this.state.fileList] });
-          listAssign[findIndex].fileId = fileList[0].file_id;
+      const listAssign = this.state.messageList;
+      setTimeout(() => {
+        const findIndex = listAssign.findIndex((e) => e.index === index);
+        if (findIndex >= 0) {
+          listAssign[findIndex].id = id;
+          listAssign[findIndex].isAllowEdit = response.isAllowEdit == 1;
+          listAssign[findIndex].isAllowDelete = response.isAllowEdit == 1;
+          this.setState({ messageList: listAssign });
+          setMessageId('');
+          if (fileList && fileList.length > 0) {
+            this.setState({ fileList: [...fileList, ...this.state.fileList] });
+            listAssign[findIndex].fileId = fileList[0].file_id;
+          }
         }
-      }
+      }, 100);
     }
   };
 
@@ -462,6 +467,14 @@ class PopupChat extends Component {
     );
   };
 
+  getSearchComment = async (e) => {
+    if (e) {
+      const response = await requestSearchComment(e);
+    } else {
+    }
+    this.setState({ loading: e.length > 0 });
+  };
+
   render() {
     const {
       roomName,
@@ -474,6 +487,7 @@ class PopupChat extends Component {
       fileList,
       dragging,
     } = this.state;
+
     const listMessagesParse = JSON.parse(JSON.stringify(messageList));
 
     for (const i in listMessagesParse) {
@@ -503,7 +517,7 @@ class PopupChat extends Component {
         }
       }
     }
-   
+
     return (
       <div
         ref={(e) => {
@@ -514,6 +528,7 @@ class PopupChat extends Component {
         <PreviewImageSection defaultListImage={this.state.messageList} />
         <ListFowardSection />
         <ChatWindow
+          getSearchComment={this.getSearchComment}
           fileList={fileList}
           isLoadMore={isLoadMore}
           onLoadMore={this.onLoadMore}

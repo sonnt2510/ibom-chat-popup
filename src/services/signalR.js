@@ -12,11 +12,13 @@ import axios from 'axios';
 let _chathubURI = '';
 let connection = null;
 let _typingState = 'ended';
+let socket = null;
 const typingEvent = new CustomEvent('typing');
 const newMessageEvent = new CustomEvent(MessageEvent.NEW_MESSAGES);
 const editMessageEvent = new CustomEvent(MessageEvent.EDIT_MESSAGE);
 const deleteMessageEvent = new CustomEvent(MessageEvent.DELETE_MESSAGE);
 const reactMessageEvent = new CustomEvent(MessageEvent.REACT_MESSAGE);
+import { io } from 'socket.io-client';
 
 export class ChatHubHelper {
   static _isValidMessage = (data) => {
@@ -67,7 +69,11 @@ export class ChatHubHelper {
 
     case MessageEvent.EDIT_MESSAGE: {
       const editEventData = data.payload;
-      return editEventData && (editEventData.comment_id || editEventData.messageId) && !isSentByThisDevice;
+      return (
+        editEventData &&
+          (editEventData.comment_id || editEventData.messageId) &&
+          !isSentByThisDevice
+      );
     }
     case MessageEvent.DELETE_MESSAGE: {
       const deleteEventData = data.payload;
@@ -190,11 +196,49 @@ export class ChatHubHelper {
     );
   };
 
+  static startConnectionSocket = (userId) => {
+    socket = io('http://42.112.31.60:3000', {
+      reconnectionAttempts: 5,
+      withCredentials: true,
+      transports: ['websocket'],
+    });
+
+    socket.on('connect', () => {
+      console.info('Socket connected');
+
+      socket.emit('register', userId);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.log(error);
+    });
+
+    socket.io.on('reconnect_attempt', () => {
+      console.info('Socket Reconnect attempt');
+    });
+
+    socket.io.on('reconnect', () => {
+      console.info('Socket Reconnected');
+    });
+
+    socket.on('newMessage', this._onReceivedMessage);
+  };
+
   static sendMessageToUsers = (userIds, payload) => {
     axios.post(`${_chathubURI}/sendMessasge`, {
       ...payload,
       userIds,
     });
+  };
+
+  static sendMessageToUsersSocket = (userIds, payload) => {
+    socket.emit(
+      'sendMessasge',
+      JSON.stringify({
+        ...payload,
+        userIds,
+      })
+    );
   };
 
   static stopConnection = () => {

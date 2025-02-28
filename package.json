@@ -44,7 +44,8 @@
     "react-player": "^1.15.3",
     "react-scripts": "^5.0.1",
     "react-tooltip": "4.3.0",
-    "reactjs-popup": "1.5.0"
+    "reactjs-popup": "1.5.0",
+    "socket.io-client": "^4.8.1"
   },
   "peerDependencies": {
     "react": "16.x"

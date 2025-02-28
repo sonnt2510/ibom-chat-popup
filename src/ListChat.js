@@ -36,7 +36,7 @@ class ListChat extends Component {
 
   setupData() {
     this._getListMessage('');
-    ChatHubHelper.startConnection(this.props.userId);
+    ChatHubHelper.startConnectionSocket(this.props.userId);
     document.addEventListener(
       MessageEvent.NEW_MESSAGES,
       (e) => this.handleMessageListener(e, 'add'),

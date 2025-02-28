@@ -35,23 +35,20 @@ class ChatWindow extends Component {
     }
   };
 
-
   render() {
-    const {isOpenMenu} = this.state;
+    const { isOpenMenu } = this.state;
     let messageList = this.props.messageList || [];
     let classList = [
       'sc-chat-window',
       this.props.isOpen ? 'opened' : 'closed',
       isOpenMenu ? 'openMenu' : 'hideMenu',
     ];
-    let menuTabClassList = [
-      'menu-tab',
-      isOpenMenu ? 'open' : 'hide',
-    ];
+    let menuTabClassList = ['menu-tab', isOpenMenu ? 'open' : 'hide'];
     return (
       <div style={{ display: 'flex', width: '100%' }}>
         <div className={classList.join(' ')}>
           <Header
+            getSearchComment={this.props.getSearchComment}
             isOpenMenu={isOpenMenu}
             onOpenMenu={this.openMenu}
             teamName={this.props.profile.roomName}
@@ -75,8 +72,14 @@ class ChatWindow extends Component {
             showEmoji={this.props.showEmoji}
           />
         </div>
-        <div onScroll={this.handleScroll} className={menuTabClassList.join(' ')}>
-          <MenuTab fileList={this.props.fileList} roomName={this.props.profile.roomName} />
+        <div
+          onScroll={this.handleScroll}
+          className={menuTabClassList.join(' ')}
+        >
+          <MenuTab
+            fileList={this.props.fileList}
+            roomName={this.props.profile.roomName}
+          />
         </div>
       </div>
     );

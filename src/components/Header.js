@@ -1,21 +1,35 @@
-import React, { Component } from 'react';
-import closeIcon from './../assets/close-icon.png';
-import detailIcon from './../assets/icon-detail.png';
-import menuIcon from './../assets/menu-icon.png';
-import searchIcon from './../assets/search_icon.png';
-import arrow from './../assets/down-arrow.png';
+import React, { Component } from "react";
+import closeIcon from "./../assets/close-icon.png";
+import detailIcon from "./../assets/icon-detail.png";
+import menuIcon from "./../assets/menu-icon.png";
+import searchIcon from "./../assets/search_icon.png";
+import arrow from "./../assets/down-arrow.png";
+import _debounce from "lodash/debounce";
+
 class Header extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isOpenSearch: false,
+      searchValue: "",
     };
   }
 
   onClickDetail = () => {
-    window.open(this.props.url, '_blank');
+    window.open(this.props.url, "_blank");
     this.props.onClose;
   };
+
+  onHandleChangeSearch = (e) => {
+    const text = e.target.value;
+    this.setState({ loading: true, page: 1 });
+    this.functionDebounce(text);
+    this.setState({ searchValue: text });
+  };
+
+  functionDebounce = _debounce((e) => {
+    this.props.getSearchComment(e);
+  }, 1000);
 
   renderSearchSection = () => {
     const { isOpenSearch } = this.state;
@@ -27,6 +41,8 @@ class Header extends Component {
         <div className="sc-header--search-wrap">
           <img src={searchIcon} className="sc-header--search-icon" />
           <input
+            onChange={this.onHandleChangeSearch}
+            value={this.state.searchValue}
             className="sc-header--search-input"
             placeholder="Tìm kiếm tin nhắn"
           />
@@ -35,7 +51,7 @@ class Header extends Component {
             <img
               style={{
                 opacity: isDisableUp ? 0.2 : 1,
-                cursor: isDisableUp ? 'self' : 'pointer',
+                cursor: isDisableUp ? "self" : "pointer",
               }}
               className="sc-header--option-arrow-up"
               src={arrow}
@@ -43,7 +59,7 @@ class Header extends Component {
             <img
               style={{
                 opacity: isDisableDown ? 0.2 : 1,
-                cursor: isDisableDown ? 'self' : 'pointer',
+                cursor: isDisableDown ? "self" : "pointer",
                 transform: `rotate(180deg)`,
               }}
               className="sc-header--option-arrow-up"
@@ -51,6 +67,7 @@ class Header extends Component {
             />
             <span
               onClick={() => {
+                this.props.getSearchComment("");
                 this.setState({ isOpenSearch: false });
               }}
               className="sc-header--option-cancel-button"
@@ -85,7 +102,7 @@ class Header extends Component {
           <div className="sc-header--close-button" onClick={onOpenMenu}>
             <img
               className={`sc-header--menuImage ${
-                isOpenMenu ? 'active' : 'inactive'
+                isOpenMenu ? "active" : "inactive"
               }`}
               src={menuIcon}
               alt="menu"
