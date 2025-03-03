@@ -26,7 +26,6 @@ import { GestureEvent, MessageEvent, TypeOfAction } from './utils/Constants';
 import { blobToData } from './utils/Message';
 import PreviewImageSection from './PreviewImageSection';
 import ListFowardSection from './ListForwardSection';
-import { SocketHelper } from './services/socketio';
 
 class PopupChat extends Component {
   dragCounter;

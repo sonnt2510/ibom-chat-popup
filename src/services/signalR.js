@@ -25,7 +25,7 @@ export class ChatHubHelper {
     console.log('new event', data);
     const currentUserId = getCurrentUserId();
     const isMessageBelongToThisUser =
-      data?.userDict?.[currentUserId ?? -1] ?? false;
+      data?.userDict?.[currentUserId ?? - 1] ?? false;
     if (!isMessageBelongToThisUser) {
       return false;
     }
@@ -197,20 +197,28 @@ export class ChatHubHelper {
   };
 
   static startConnectionSocket = (userId) => {
-    socket = io('http://42.112.31.60:3000', {
+    socket = io('https://chathub.ibom.vn', {
       reconnectionAttempts: 5,
-      withCredentials: true,
+      port: '',
       transports: ['websocket'],
     });
 
     socket.on('connect', () => {
       console.info('Socket connected');
-
+      console.log('userId',userId)
       socket.emit('register', userId);
     });
 
-    socket.on('connect_error', (error) => {
-      console.log(error);
+
+    socket.on("connect_error", (err) => {
+      // the reason of the error, for example "xhr poll error"
+      console.log(err.message);
+    
+      // some additional description, for example the status code of the initial HTTP response
+      console.log(err.description);
+    
+      // some additional context, for example the XMLHttpRequest object
+      console.log(err.context);
     });
 
     socket.io.on('reconnect_attempt', () => {
