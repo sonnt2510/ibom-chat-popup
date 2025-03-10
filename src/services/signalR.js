@@ -200,12 +200,11 @@ export class ChatHubHelper {
     socket = io('https://chathub.ibom.vn', {
       reconnectionAttempts: 5,
       port: '',
-      transports: ['websocket'],
+      transports: ['polling'],
     });
 
     socket.on('connect', () => {
       console.info('Socket connected');
-      console.log('userId',userId)
       socket.emit('register', userId);
     });
 
